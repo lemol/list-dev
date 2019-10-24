@@ -92,6 +92,8 @@ headerTitle =
                 , padding 12
                 , Font.size 40
                 , Font.color <| rgb255 6 41 46
+                , htmlAttribute <|
+                    style "font-weight" "300"
                 ]
                 (text "Angolans Developers")
             , el
@@ -190,68 +192,79 @@ mainSection =
                   <|
                     row
                         [ width fill
-                        , padding 8
+                        , paddingXY 16 8
                         ]
-                        [ el
-                            [ Font.size 32
-                            , Font.color <| rgb255 88 96 105
+                        [ row
+                            [ spacing 12
+                            , width (fill |> minimum 300)
                             ]
-                            (text "1")
-                        , link
-                            []
-                            { url = "#/Users/" ++ "lemol"
-                            , label =
-                                row
-                                    []
-                                    [ Html.img
-                                        [ style "width" "48px"
-                                        , style "height" "52px"
-                                        , style "border-radius" "3px"
-                                        , style "border-width" "1px"
-                                        , src "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
+                            [ el
+                                [ Font.size 32
+                                , Font.color <| rgb255 88 96 105
+                                ]
+                                (text "1")
+                            , link
+                                []
+                                { url = "#/Users/" ++ "lemol"
+                                , label =
+                                    row
+                                        [ width fill
+                                        , spacing 12
                                         ]
-                                        []
-                                        |> html
-                                    , column
-                                        [ width (fill |> minimum 300) ]
-                                        [ el
-                                            [ Font.size 20
-                                            , Font.bold
-                                            , Font.color <| rgb255 3 102 214
+                                        [ el [] <|
+                                            html <|
+                                                Html.img
+                                                    [ style "width" "48px"
+                                                    , style "height" "52px"
+                                                    , style "border-radius" "3px"
+                                                    , style "border-width" "1px"
+                                                    , src "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
+                                                    ]
+                                                    []
+                                        , column
+                                            [ spacing 4 ]
+                                            [ el
+                                                [ Font.size 20
+                                                , Font.bold
+                                                , Font.color <| rgb255 3 102 214
+                                                ]
+                                                (text "Leza Lutonda")
+                                            , el
+                                                [ Font.size 16
+                                                , Font.color <| rgb255 88 96 105
+                                                , mouseOver [ Font.color <| rgb255 3 102 214 ]
+                                                ]
+                                                (text "lemol")
                                             ]
-                                            (text "Leza Lutonda")
-                                        , el
-                                            [ Font.size 16
-                                            , Font.color <| rgb255 88 96 105
-                                            , mouseOver [ Font.color <| rgb255 3 102 214 ]
-                                            ]
-                                            (text "lemol")
                                         ]
-                                    ]
-                            }
+                                }
+                            ]
                         , column
                             [ width (fill |> maximum 300)
+                            , spacingXY 0 9
                             ]
                             [ el
                                 [ Font.size 16
                                 , Font.variant Font.smallCaps
+                                , Font.color <| rgb255 88 96 105
                                 ]
                                 (text "popular repo")
                             , link
                                 [ Font.size 16
                                 , Font.color <| rgb255 3 102 214
+                                , Font.semiBold
                                 ]
                                 { url = "#", label = text "angolans-on-github-elm" }
                             , paragraph
                                 [ Font.size 12
                                 , Font.color <| rgb255 88 96 105
                                 ]
-                                [ text "Clone of some github pages written with elm-ui. Almost zero css, javascript and html." ]
+                                [ text "Github Trending page clone using elm-ui. Almost zero css+javascript+html." ]
                             ]
                         , row
                             [ width fill
                             ]
-                            [ el [ alignRight ] (githubTextButton "View") ]
+                            [ el [ alignRight ] (githubTextButton "Follow") ]
                         ]
                 ]
 
@@ -259,7 +272,7 @@ mainSection =
 githubTextButton : String -> Element msg
 githubTextButton label =
     Input.button
-        [ height <| px 24
+        [ height <| px 28
         , paddingXY 10 3
         , Font.size 12
         , Font.semiBold
