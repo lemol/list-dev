@@ -4,5 +4,8 @@
     },
     "elm.compiler": "./node_modules/.bin/elm",
     "elm.formatCommand": "./node_modules/.bin/elm-format",
-    "elm.analyseCommand": "./node_modules/.bin/elm-analyse"
+    "elm.analyseCommand": "./node_modules/.bin/elm-analyse",
+    "workbench.colorCustomizations": {
+        "tab.unfocusedActiveBorder": "#fff0"
+    }
 }

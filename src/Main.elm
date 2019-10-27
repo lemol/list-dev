@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -7,15 +8,87 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes exposing (src, style)
+import Http
+import Json.Decode as Decode
+import RemoteData exposing (RemoteData(..), WebData)
 
 
-main : Html msg
+type alias User =
+    { login : String
+    , name : String
+    , avatar : String
+    }
+
+
+type alias Model =
+    { users : WebData (List User)
+    }
+
+
+type Msg
+    = FetchUsersResponse (WebData (List User))
+    | FetchUsers
+
+
+userDecoder : Decode.Decoder User
+userDecoder =
+    Decode.map3 User
+        (Decode.field "login" Decode.string)
+        (Decode.field "login" Decode.string)
+        (Decode.field "avatar_url" Decode.string)
+
+
+usersDecoder : Decode.Decoder (List User)
+usersDecoder =
+    Decode.field "items" (Decode.list userDecoder)
+
+
+fetchUsers : Cmd Msg
+fetchUsers =
+    Http.get
+        { url = "https://api.github.com/search/users?q=location:Angola+location:luanda&per_page=20"
+        , expect = Http.expectJson (RemoteData.fromResult >> FetchUsersResponse) usersDecoder
+        }
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        FetchUsers ->
+            ( model
+            , fetchUsers
+            )
+
+        FetchUsersResponse response ->
+            ( { model | users = response }
+            , Cmd.none
+            )
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( { users = Loading }
+    , fetchUsers
+    )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
+main : Program () Model Msg
 main =
-    view
+    Browser.element
+        { init = always init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
 
 
-view : Html msg
-view =
+view : Model -> Html msg
+view model =
     layout
         [ Font.family mainFontFamily
         ]
@@ -26,7 +99,7 @@ view =
             ]
             [ headerBar
             , headerTitle
-            , mainSection
+            , mainSection model
             ]
 
 
@@ -115,28 +188,22 @@ headerTitle =
             ]
 
 
-type alias User =
-    { username : String
-    , name : String
-    , avatar : String
-    }
+
+-- users : List User
+-- users =
+--     [ { login = "lemol"
+--       , name = "Leza Lutonda"
+--       , avatar = "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
+--       }
+--     , { login = "frida"
+--       , name = "Frida Zohounvo"
+--       , avatar = "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
+--       }
+--     ]
 
 
-users : List User
-users =
-    [ { username = "lemol"
-      , name = "Leza Lutonda"
-      , avatar = "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
-      }
-    , { username = "frida"
-      , name = "Frida Zohounvo"
-      , avatar = "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
-      }
-    ]
-
-
-mainSection : Element msg
-mainSection =
+mainSection : Model -> Element msg
+mainSection model =
     let
         top =
             el
@@ -223,6 +290,7 @@ mainSection =
                 ]
                 [ row
                     [ spacing 12
+                    , alignTop
                     , width (fill |> minimum 300)
                     ]
                     [ el
@@ -232,7 +300,7 @@ mainSection =
                         (text <| String.fromInt (count + 1))
                     , link
                         []
-                        { url = "#/Users/" ++ user.username
+                        { url = "#/Users/" ++ user.login
                         , label =
                             row
                                 [ width fill
@@ -261,7 +329,7 @@ mainSection =
                                         , Font.color <| rgb255 88 96 105
                                         , mouseOver [ Font.color <| rgb255 3 102 214 ]
                                         ]
-                                        (text user.username)
+                                        (text user.login)
                                     ]
                                 ]
                         }
@@ -295,9 +363,17 @@ mainSection =
                 ]
 
         userList =
-            users
-                |> List.indexedMap userListItem
-                |> column [ width fill ]
+            case model.users of
+                Success users ->
+                    users
+                        |> List.indexedMap userListItem
+                        |> column [ width fill ]
+
+                Failure (Http.BadBody err) ->
+                    text err
+
+                _ ->
+                    text "Loading..."
     in
     el
         [ width fill
