@@ -1,4 +1,4 @@
-module Utils.ListDropdown exposing (DropdownModel, DropdownMsg(..), initListDropdown, listDropdown, updateListDropdown)
+module Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
 import Element exposing (Element, below, centerY, column, el, fill, focused, height, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, spacing, text, width)
 import Element.Background as Background
@@ -24,8 +24,8 @@ type DropdownState
     | Closed
 
 
-initListDropdown : Maybe value -> DropdownModel value
-initListDropdown maybeValue =
+initDropdownMenu : Maybe value -> DropdownModel value
+initDropdownMenu maybeValue =
     { state = Closed
     , selected = maybeValue
     }
@@ -44,8 +44,8 @@ type DropdownMsg value
 -- UPDATE
 
 
-updateListDropdown : DropdownMsg value -> DropdownModel value -> DropdownModel value
-updateListDropdown msg model =
+updateDropdownMenu : DropdownMsg value -> DropdownModel value -> DropdownModel value
+updateDropdownMenu msg model =
     case msg of
         ChangeState newState ->
             { model | state = newState }
@@ -58,8 +58,8 @@ updateListDropdown msg model =
 -- VIEW
 
 
-listDropdown : String -> String -> List value -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
-listDropdown title description options toString model toMsg =
+dropdownMenu : String -> String -> List value -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
+dropdownMenu title description options toString model toMsg =
     let
         stateAttrs =
             case model.state of

@@ -10,7 +10,7 @@ import Html.Attributes exposing (src, style)
 import Http
 import RemoteData exposing (RemoteData(..))
 import Utils.Button exposing (githubTextLink)
-import Utils.ListDropdown exposing (DropdownModel, DropdownMsg(..), initListDropdown, listDropdown, updateListDropdown)
+import Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
 
 
@@ -31,8 +31,8 @@ init =
     ( { developers = Loading
       , sortBy = BestMatch
       , language = Nothing
-      , sortDropdown = initListDropdown (Just BestMatch)
-      , languageDropdown = initListDropdown Nothing
+      , sortDropdown = initDropdownMenu (Just BestMatch)
+      , languageDropdown = initDropdownMenu Nothing
       }
     , fetchDeveloperList BestMatch Nothing FetchDeveloperListResponse
     )
@@ -78,7 +78,7 @@ update msg model =
         SortDropdownMsg subMsg ->
             let
                 dropdownUpdated =
-                    { model | sortDropdown = updateListDropdown subMsg model.sortDropdown }
+                    { model | sortDropdown = updateDropdownMenu subMsg model.sortDropdown }
 
                 ( modelUpdated, cmd ) =
                     case subMsg of
@@ -102,7 +102,7 @@ update msg model =
         LanguageDropdownMsg subMsg ->
             let
                 dropdownUpdated =
-                    { model | languageDropdown = updateListDropdown subMsg model.languageDropdown }
+                    { model | languageDropdown = updateDropdownMenu subMsg model.languageDropdown }
 
                 ( modelUpdated, cmd ) =
                     case subMsg of
@@ -203,8 +203,8 @@ mainSectionView model =
                         ]
                     , row
                         [ alignRight, spacing 32 ]
-                        [ listDropdown "Language:" "Select a language" languageValues languageToString model.languageDropdown LanguageDropdownMsg
-                        , listDropdown "Sort:" "Sort options" sortValues sortToString model.sortDropdown SortDropdownMsg
+                        [ dropdownMenu "Language:" "Select a language" languageValues languageToString model.languageDropdown LanguageDropdownMsg
+                        , dropdownMenu "Sort:" "Sort options" sortValues sortToString model.sortDropdown SortDropdownMsg
                         ]
                     ]
     in
