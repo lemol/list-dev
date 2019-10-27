@@ -1,6 +1,6 @@
 module Utils.ListDropdown exposing (DropdownModel, DropdownMsg(..), initListDropdown, listDropdown, updateListDropdown)
 
-import Element exposing (Element, below, column, el, fill, mouseOver, padding, paddingEach, paddingXY, pointer, px, rgb255, row, spacing, text, width)
+import Element exposing (Element, below, centerY, column, el, fill, focused, height, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
@@ -58,13 +58,13 @@ updateListDropdown msg model =
 -- VIEW
 
 
-listDropdown : String -> List value -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
-listDropdown title options toString model toMsg =
+listDropdown : String -> String -> List value -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
+listDropdown title description options toString model toMsg =
     let
         stateAttrs =
             case model.state of
                 Opened ->
-                    [ below (listDropdownBody options toString ChangeSelected)
+                    [ below (listDropdownBody description options toString ChangeSelected)
                         |> Element.mapAttribute toMsg
                     ]
 
@@ -73,6 +73,7 @@ listDropdown title options toString model toMsg =
     in
     Input.button
         ([ pointer
+         , focused [ Border.color <| rgba255 0 0 0 1 ]
          , Events.onLoseFocus (toMsg <| ChangeState Closed)
          ]
             ++ stateAttrs
@@ -104,21 +105,23 @@ listDropdown title options toString model toMsg =
         }
 
 
-listDropdownBody : List value -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
-listDropdownBody items toString onChange =
+listDropdownBody : String -> List value -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
+listDropdownBody description items toString onChange =
     let
         listTitle =
             el
                 [ width fill
+                , height <| px 34
                 , padding 8
                 , Font.semiBold
                 , Background.color <| rgb255 0xF6 0xF8 0xFA
                 ]
-                (text "Sort options")
+                (el [ centerY ] <| text description)
 
         itemButton _ value =
             el
                 [ width fill
+                , height <| px 34
                 , paddingEach { left = 30, right = 8, top = 8, bottom = 8 }
                 , pointer
                 , Font.color <| rgb255 0x58 0x60 0x69
@@ -135,8 +138,7 @@ listDropdownBody items toString onChange =
                     , Background.color <| rgb255 0x03 0x66 0xD6
                     ]
                 ]
-            <|
-                text (toString value)
+                (el [ centerY ] <| text (toString value))
     in
     el
         [ paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
@@ -145,10 +147,16 @@ listDropdownBody items toString onChange =
     <|
         column
             [ width <| px 300
-            , Border.color <| rgb255 209 213 218
+            , Font.size 12
+            , Border.color <| rgba255 27 31 35 0.15
             , Border.width 1
             , Border.rounded 3
-            , Font.size 12
+            , Border.shadow
+                { offset = ( 0, 3 )
+                , size = 0
+                , blur = 12
+                , color = rgba255 27 31 35 0.15
+                }
             ]
             [ listTitle
             , column

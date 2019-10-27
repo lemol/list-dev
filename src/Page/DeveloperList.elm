@@ -1,7 +1,6 @@
 module Page.DeveloperList exposing (..)
 
 import Data.Developer exposing (..)
-import Dict
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -22,6 +21,8 @@ type alias Model =
     { developers : DeveloperListWebData
     , sortBy : Sort
     , sortDropdown : DropdownModel Sort
+    , language : LanguageFilter
+    , languageDropdown : DropdownModel LanguageFilter
     }
 
 
@@ -29,9 +30,11 @@ init : ( Model, Cmd Msg )
 init =
     ( { developers = Loading
       , sortBy = BestMatch
+      , language = Nothing
       , sortDropdown = initListDropdown (Just BestMatch)
+      , languageDropdown = initListDropdown Nothing
       }
-    , fetchDeveloperList BestMatch FetchDeveloperListResponse
+    , fetchDeveloperList BestMatch Nothing FetchDeveloperListResponse
     )
 
 
@@ -44,6 +47,8 @@ type Msg
     | FetchDeveloperList
     | ChangeSort Sort
     | SortDropdownMsg (DropdownMsg Sort)
+    | ChangeLanguage LanguageFilter
+    | LanguageDropdownMsg (DropdownMsg LanguageFilter)
 
 
 
@@ -55,7 +60,7 @@ update msg model =
     case msg of
         FetchDeveloperList ->
             ( model
-            , fetchDeveloperList model.sortBy FetchDeveloperListResponse
+            , fetchDeveloperList model.sortBy model.language FetchDeveloperListResponse
             )
 
         FetchDeveloperListResponse response ->
@@ -70,15 +75,39 @@ update msg model =
             in
             update FetchDeveloperList newModel
 
-        SortDropdownMsg sortMsg ->
+        SortDropdownMsg subMsg ->
             let
                 dropdownUpdated =
-                    { model | sortDropdown = updateListDropdown sortMsg model.sortDropdown }
+                    { model | sortDropdown = updateListDropdown subMsg model.sortDropdown }
 
                 ( modelUpdated, cmd ) =
-                    case sortMsg of
+                    case subMsg of
                         ChangeSelected newSelected ->
                             update (ChangeSort <| Maybe.withDefault BestMatch newSelected) dropdownUpdated
+
+                        _ ->
+                            ( dropdownUpdated, Cmd.none )
+            in
+            ( modelUpdated
+            , cmd
+            )
+
+        ChangeLanguage newLanguage ->
+            let
+                newModel =
+                    { model | language = newLanguage }
+            in
+            update FetchDeveloperList newModel
+
+        LanguageDropdownMsg subMsg ->
+            let
+                dropdownUpdated =
+                    { model | languageDropdown = updateListDropdown subMsg model.languageDropdown }
+
+                ( modelUpdated, cmd ) =
+                    case subMsg of
+                        ChangeSelected newSelected ->
+                            update (ChangeLanguage <| Maybe.withDefault Nothing newSelected) dropdownUpdated
 
                         _ ->
                             ( dropdownUpdated, Cmd.none )
@@ -174,7 +203,8 @@ mainSectionView model =
                         ]
                     , row
                         [ alignRight, spacing 32 ]
-                        [ listDropdown "Sort:" sortValues sortToString model.sortDropdown SortDropdownMsg
+                        [ listDropdown "Language:" "Select a language" languageValues languageToString model.languageDropdown LanguageDropdownMsg
+                        , listDropdown "Sort:" "Sort options" sortValues sortToString model.sortDropdown SortDropdownMsg
                         ]
                     ]
     in
@@ -301,44 +331,3 @@ developerListItemView count user =
             ]
             [ el [ alignRight ] (githubTextLink user.htmlUrl "Profile") ]
         ]
-
-
-
--- HELPERS
-
-
-sortValues : List Sort
-sortValues =
-    [ BestMatch
-    , MostFollowers
-    , FewestFollowers
-    , MostRecentlyJoined
-    , LeastRecentlyJoined
-    , MostRepositories
-    , FewestRepositories
-    ]
-
-
-sortToString : Sort -> String
-sortToString sort =
-    case sort of
-        BestMatch ->
-            "Best match"
-
-        MostFollowers ->
-            "Most followers"
-
-        FewestFollowers ->
-            "Fewest followers"
-
-        MostRecentlyJoined ->
-            "Most recently joined"
-
-        LeastRecentlyJoined ->
-            "Least recently joined"
-
-        MostRepositories ->
-            "Most repositories"
-
-        FewestRepositories ->
-            "Fewest repositories"
