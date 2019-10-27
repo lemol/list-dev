@@ -4,6 +4,7 @@ import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
@@ -17,25 +18,108 @@ type alias User =
     { login : String
     , name : String
     , avatar : String
+    , url : String
+    , htmlUrl : String
     }
+
+
+type UsersSort
+    = BestMatch
+    | MostFollowers
+    | FewestFollowers
+    | MostRecentlyJoined
+    | LeastRecentlyJoined
+    | MostRepositories
+    | FewestRepositories
+
+
+sortToQueryString : UsersSort -> String
+sortToQueryString sort =
+    case sort of
+        BestMatch ->
+            "order=desc"
+
+        MostFollowers ->
+            "order=desc&sort=followers"
+
+        FewestFollowers ->
+            "order=asc&sort=followers"
+
+        MostRecentlyJoined ->
+            "order=desc&sort=joined"
+
+        LeastRecentlyJoined ->
+            "order=asc&sort=joined"
+
+        MostRepositories ->
+            "order=desc&sort=repositories"
+
+        FewestRepositories ->
+            "order=asc&sort=repositories"
+
+
+dropdownToSort : String -> UsersSort
+dropdownToSort val =
+    case val of
+        "BestMatch" ->
+            BestMatch
+
+        "MostFollowers" ->
+            MostFollowers
+
+        "FewestFollowers" ->
+            FewestFollowers
+
+        "MostRecentlyJoined" ->
+            MostRecentlyJoined
+
+        "LeastRecentlyJoined" ->
+            LeastRecentlyJoined
+
+        "MostRepositories" ->
+            MostRepositories
+
+        "FewestRepositories" ->
+            FewestRepositories
+
+        _ ->
+            BestMatch
+
+
+sortStrings : List String
+sortStrings =
+    [ "BestMatch"
+    , "MostFollowers"
+    , "FewestFollowers"
+    , "MostRecentlyJoined"
+    , "LeastRecentlyJoined"
+    , "MostRepositories"
+    , "FewestRepositories"
+    ]
 
 
 type alias Model =
     { users : WebData (List User)
+    , usersSort : UsersSort
+    , sortDropdown : DropdownModel
     }
 
 
 type Msg
     = FetchUsersResponse (WebData (List User))
     | FetchUsers
+    | ChangeUsersSort UsersSort
+    | SortDropdownMsg DropdownMsg
 
 
 userDecoder : Decode.Decoder User
 userDecoder =
-    Decode.map3 User
+    Decode.map5 User
         (Decode.field "login" Decode.string)
         (Decode.field "login" Decode.string)
         (Decode.field "avatar_url" Decode.string)
+        (Decode.field "url" Decode.string)
+        (Decode.field "html_url" Decode.string)
 
 
 usersDecoder : Decode.Decoder (List User)
@@ -43,10 +127,14 @@ usersDecoder =
     Decode.field "items" (Decode.list userDecoder)
 
 
-fetchUsers : Cmd Msg
-fetchUsers =
+fetchUsers : UsersSort -> Cmd Msg
+fetchUsers sort =
+    let
+        usersUrl =
+            "https://api.github.com/search/users?q=location:Angola+location:luanda&per_page=20&" ++ sortToQueryString sort
+    in
     Http.get
-        { url = "https://api.github.com/search/users?q=location:Angola+location:luanda&per_page=20"
+        { url = usersUrl
         , expect = Http.expectJson (RemoteData.fromResult >> FetchUsersResponse) usersDecoder
         }
 
@@ -56,7 +144,7 @@ update msg model =
     case msg of
         FetchUsers ->
             ( model
-            , fetchUsers
+            , fetchUsers model.usersSort
             )
 
         FetchUsersResponse response ->
@@ -64,11 +152,38 @@ update msg model =
             , Cmd.none
             )
 
+        ChangeUsersSort newSort ->
+            let
+                newModel =
+                    { model | usersSort = newSort }
+            in
+            update FetchUsers newModel
+
+        SortDropdownMsg sortMsg ->
+            let
+                dropdownUpdated =
+                    { model | sortDropdown = updateListDropdown sortMsg model.sortDropdown }
+
+                ( modelUpdated, cmd ) =
+                    case sortMsg of
+                        ChangeSelected newSelected ->
+                            update (ChangeUsersSort <| dropdownToSort newSelected) dropdownUpdated
+
+                        _ ->
+                            ( dropdownUpdated, Cmd.none )
+            in
+            ( modelUpdated
+            , cmd
+            )
+
 
 init : ( Model, Cmd Msg )
 init =
-    ( { users = Loading }
-    , fetchUsers
+    ( { users = Loading
+      , usersSort = BestMatch
+      , sortDropdown = initListDropdown
+      }
+    , fetchUsers BestMatch
     )
 
 
@@ -87,7 +202,7 @@ main =
         }
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     layout
         [ Font.family mainFontFamily
@@ -188,21 +303,7 @@ headerTitle =
             ]
 
 
-
--- users : List User
--- users =
---     [ { login = "lemol"
---       , name = "Leza Lutonda"
---       , avatar = "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
---       }
---     , { login = "frida"
---       , name = "Frida Zohounvo"
---       , avatar = "https://avatars3.githubusercontent.com/u/1035379?s=96&v=4"
---       }
---     ]
-
-
-mainSection : Model -> Element msg
+mainSection : Model -> Element Msg
 mainSection model =
     let
         top =
@@ -251,23 +352,8 @@ mainSection model =
                             { url = "#/Developers", label = el [ centerY ] (text "Developers") }
                         ]
                     , row
-                        [ alignRight ]
-                        [ row
-                            [ spacing 4
-                            , pointer
-                            , Font.size 14
-                            , Font.color <| rgb255 88 96 105
-                            , mouseOver
-                                [ Font.color <| rgb255 36 41 46 ]
-                            ]
-                            [ el
-                                []
-                                (text "Language:")
-                            , el
-                                [ Font.semiBold ]
-                                (text "Any")
-                            , text "▾"
-                            ]
+                        [ alignRight, spacing 32 ]
+                        [ listDropdown "Sort:" sortStrings model.sortDropdown SortDropdownMsg
                         ]
                     ]
 
@@ -359,7 +445,7 @@ mainSection model =
                 , row
                     [ width fill
                     ]
-                    [ el [ alignRight ] (githubTextButton "Follow") ]
+                    [ el [ alignRight ] (githubTextLink user.htmlUrl "Profile") ]
                 ]
 
         userList =
@@ -407,7 +493,121 @@ githubTextButton label =
             [ Background.color <| rgb255 230 235 241
             , Border.color <| rgba255 27 31 35 0.35
             ]
+        , focused
+            [ Background.color <| rgb255 0xFF 0x00 0x00 ]
         ]
         { onPress = Nothing
         , label = text label
         }
+
+
+githubTextLink : String -> String -> Element msg
+githubTextLink url label =
+    link
+        [ height <| px 28
+        , paddingXY 10 3
+        , Font.size 12
+        , Font.semiBold
+        , Background.color <| rgb255 239 243 246
+        , Border.color <| rgba255 27 31 35 0.2
+        , Border.width 1
+        , Border.rounded 3
+        , mouseOver
+            [ Background.color <| rgb255 230 235 241
+            , Border.color <| rgba255 27 31 35 0.35
+            ]
+        ]
+        { url = url
+        , label = el [ centerY ] (text label)
+        }
+
+
+type alias DropdownModel =
+    { state : DropdownState
+    , selected : String
+    }
+
+
+type DropdownState
+    = Opened
+    | Closed
+
+
+type DropdownMsg
+    = ChangeState DropdownState
+    | ChangeSelected String
+
+
+initListDropdown : DropdownModel
+initListDropdown =
+    { state = Closed
+    , selected = "BestMatch"
+    }
+
+
+updateListDropdown : DropdownMsg -> DropdownModel -> DropdownModel
+updateListDropdown msg model =
+    case msg of
+        ChangeState newState ->
+            { model | state = newState }
+
+        ChangeSelected newSelected ->
+            { model | selected = newSelected, state = Closed }
+
+
+listDropdown : String -> List String -> DropdownModel -> (DropdownMsg -> msg) -> Element msg
+listDropdown title options model toMsg =
+    let
+        stateAttrs =
+            case model.state of
+                Opened ->
+                    [ below (listDropdownButtonBody options ChangeSelected) |> Element.mapAttribute toMsg ]
+
+                Closed ->
+                    []
+    in
+    Input.button
+        ([ spacing 4
+         , pointer
+         , Font.size 14
+         , Font.color <| rgb255 88 96 105
+         , mouseOver
+            [ Font.color <| rgb255 36 41 46 ]
+         , Events.onLoseFocus (toMsg <| ChangeState Closed)
+         ]
+            ++ stateAttrs
+        )
+        { onPress = Nothing
+        , label =
+            row
+                [ Events.onClick (toMsg <| ChangeState Opened)
+                , Events.onFocus (toMsg <| ChangeState Opened)
+                ]
+                [ el
+                    []
+                    (text title)
+                , el
+                    [ Font.semiBold
+                    , focused
+                        [ Background.color <| rgb255 0xFF 0x00 0x00
+                        ]
+                    ]
+                    (text model.selected)
+                , text "▾"
+                ]
+        }
+
+
+listDropdownButtonBody : List String -> (String -> DropdownMsg) -> Element DropdownMsg
+listDropdownButtonBody items onChange =
+    let
+        itemButton val =
+            el
+                [ Events.onClick <| onChange val ]
+            <|
+                text val
+    in
+    column []
+        (items
+            |> List.map itemButton
+        )
