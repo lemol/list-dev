@@ -1,6 +1,8 @@
 module Utils.ListDropdown exposing (DropdownModel, DropdownMsg(..), initListDropdown, listDropdown, updateListDropdown)
 
-import Element exposing (Element, below, column, el, mouseOver, pointer, rgb255, row, spacing, text)
+import Element exposing (Element, below, column, el, fill, mouseOver, padding, paddingEach, paddingXY, pointer, px, rgb255, row, spacing, text, width)
+import Element.Background as Background
+import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
@@ -62,7 +64,7 @@ listDropdown title options toString model toMsg =
         stateAttrs =
             case model.state of
                 Opened ->
-                    [ below (listDropdownButtonBody options toString ChangeSelected)
+                    [ below (listDropdownBody options toString ChangeSelected)
                         |> Element.mapAttribute toMsg
                     ]
 
@@ -102,16 +104,56 @@ listDropdown title options toString model toMsg =
         }
 
 
-listDropdownButtonBody : List value -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
-listDropdownButtonBody items toString onChange =
+listDropdownBody : List value -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
+listDropdownBody items toString onChange =
     let
-        itemButton value =
+        listTitle =
             el
-                [ Events.onClick <| onChange (Just value) ]
+                [ width fill
+                , padding 8
+                , Font.semiBold
+                , Background.color <| rgb255 0xF6 0xF8 0xFA
+                ]
+                (text "Sort options")
+
+        itemButton _ value =
+            el
+                [ width fill
+                , paddingEach { left = 30, right = 8, top = 8, bottom = 8 }
+                , pointer
+                , Font.color <| rgb255 0x58 0x60 0x69
+                , Border.color <| rgb255 0xEA 0xEC 0xEF
+                , Border.widthEach
+                    { left = 0
+                    , right = 0
+                    , top = 1
+                    , bottom = 0
+                    }
+                , Events.onClick <| onChange (Just value)
+                , mouseOver
+                    [ Font.color <| rgb255 0xFF 0xFF 0xFF
+                    , Background.color <| rgb255 0x03 0x66 0xD6
+                    ]
+                ]
             <|
                 text (toString value)
     in
-    column []
-        (items
-            |> List.map itemButton
-        )
+    el
+        [ paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
+        , Element.alignRight
+        ]
+    <|
+        column
+            [ width <| px 300
+            , Border.color <| rgb255 209 213 218
+            , Border.width 1
+            , Border.rounded 3
+            , Font.size 12
+            ]
+            [ listTitle
+            , column
+                [ width fill
+                , Background.color <| rgb255 0xFF 0xFF 0xFF
+                ]
+                (List.indexedMap itemButton items)
+            ]
