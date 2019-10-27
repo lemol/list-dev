@@ -1,6 +1,7 @@
 module Page.DeveloperList exposing (..)
 
 import Data.Developer exposing (..)
+import Dict
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -20,7 +21,7 @@ import Utils.ListDropdown exposing (DropdownModel, DropdownMsg(..), initListDrop
 type alias Model =
     { developers : DeveloperListWebData
     , sortBy : Sort
-    , sortDropdown : DropdownModel
+    , sortDropdown : DropdownModel Sort
     }
 
 
@@ -28,7 +29,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { developers = Loading
       , sortBy = BestMatch
-      , sortDropdown = initListDropdown
+      , sortDropdown = initListDropdown (Just BestMatch)
       }
     , fetchDeveloperList BestMatch FetchDeveloperListResponse
     )
@@ -42,7 +43,7 @@ type Msg
     = FetchDeveloperListResponse DeveloperListWebData
     | FetchDeveloperList
     | ChangeSort Sort
-    | SortDropdownMsg DropdownMsg
+    | SortDropdownMsg (DropdownMsg Sort)
 
 
 
@@ -77,7 +78,7 @@ update msg model =
                 ( modelUpdated, cmd ) =
                     case sortMsg of
                         ChangeSelected newSelected ->
-                            update (ChangeSort <| dropdownToSort newSelected) dropdownUpdated
+                            update (ChangeSort <| Maybe.withDefault BestMatch newSelected) dropdownUpdated
 
                         _ ->
                             ( dropdownUpdated, Cmd.none )
@@ -173,7 +174,7 @@ mainSectionView model =
                         ]
                     , row
                         [ alignRight, spacing 32 ]
-                        [ listDropdown "Sort:" sortStrings model.sortDropdown SortDropdownMsg
+                        [ listDropdown "Sort:" sortValues sortToString model.sortDropdown SortDropdownMsg
                         ]
                     ]
     in
@@ -306,41 +307,38 @@ developerListItemView count user =
 -- HELPERS
 
 
-dropdownToSort : String -> Sort
-dropdownToSort val =
-    case val of
-        "BestMatch" ->
-            BestMatch
-
-        "MostFollowers" ->
-            MostFollowers
-
-        "FewestFollowers" ->
-            FewestFollowers
-
-        "MostRecentlyJoined" ->
-            MostRecentlyJoined
-
-        "LeastRecentlyJoined" ->
-            LeastRecentlyJoined
-
-        "MostRepositories" ->
-            MostRepositories
-
-        "FewestRepositories" ->
-            FewestRepositories
-
-        _ ->
-            BestMatch
-
-
-sortStrings : List String
-sortStrings =
-    [ "BestMatch"
-    , "MostFollowers"
-    , "FewestFollowers"
-    , "MostRecentlyJoined"
-    , "LeastRecentlyJoined"
-    , "MostRepositories"
-    , "FewestRepositories"
+sortValues : List Sort
+sortValues =
+    [ BestMatch
+    , MostFollowers
+    , FewestFollowers
+    , MostRecentlyJoined
+    , LeastRecentlyJoined
+    , MostRepositories
+    , FewestRepositories
     ]
+
+
+sortToString : Sort -> String
+sortToString sort =
+    case sort of
+        BestMatch ->
+            "Best match"
+
+        MostFollowers ->
+            "Most followers"
+
+        FewestFollowers ->
+            "Fewest followers"
+
+        MostRecentlyJoined ->
+            "Most recently joined"
+
+        LeastRecentlyJoined ->
+            "Least recently joined"
+
+        MostRepositories ->
+            "Most repositories"
+
+        FewestRepositories ->
+            "Fewest repositories"

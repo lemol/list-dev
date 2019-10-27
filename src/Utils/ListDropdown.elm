@@ -11,9 +11,9 @@ import RemoteData exposing (RemoteData(..))
 -- MODEL
 
 
-type alias DropdownModel =
+type alias DropdownModel value =
     { state : DropdownState
-    , selected : String
+    , selected : Maybe value
     }
 
 
@@ -22,10 +22,10 @@ type DropdownState
     | Closed
 
 
-initListDropdown : DropdownModel
-initListDropdown =
+initListDropdown : Maybe value -> DropdownModel value
+initListDropdown maybeValue =
     { state = Closed
-    , selected = "BestMatch"
+    , selected = maybeValue
     }
 
 
@@ -33,16 +33,16 @@ initListDropdown =
 -- MESSAGE
 
 
-type DropdownMsg
+type DropdownMsg value
     = ChangeState DropdownState
-    | ChangeSelected String
+    | ChangeSelected (Maybe value)
 
 
 
 -- UPDATE
 
 
-updateListDropdown : DropdownMsg -> DropdownModel -> DropdownModel
+updateListDropdown : DropdownMsg value -> DropdownModel value -> DropdownModel value
 updateListDropdown msg model =
     case msg of
         ChangeState newState ->
@@ -56,13 +56,15 @@ updateListDropdown msg model =
 -- VIEW
 
 
-listDropdown : String -> List String -> DropdownModel -> (DropdownMsg -> msg) -> Element msg
-listDropdown title options model toMsg =
+listDropdown : String -> List value -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
+listDropdown title options toString model toMsg =
     let
         stateAttrs =
             case model.state of
                 Opened ->
-                    [ below (listDropdownButtonBody options ChangeSelected) |> Element.mapAttribute toMsg ]
+                    [ below (listDropdownButtonBody options toString ChangeSelected)
+                        |> Element.mapAttribute toMsg
+                    ]
 
                 Closed ->
                     []
@@ -90,20 +92,24 @@ listDropdown title options model toMsg =
                 , el
                     [ Font.semiBold
                     ]
-                    (text model.selected)
+                    (model.selected
+                        |> Maybe.map toString
+                        |> Maybe.withDefault "-"
+                        |> text
+                    )
                 , text "▾"
                 ]
         }
 
 
-listDropdownButtonBody : List String -> (String -> DropdownMsg) -> Element DropdownMsg
-listDropdownButtonBody items onChange =
+listDropdownButtonBody : List value -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
+listDropdownButtonBody items toString onChange =
     let
-        itemButton val =
+        itemButton value =
             el
-                [ Events.onClick <| onChange val ]
+                [ Events.onClick <| onChange (Just value) ]
             <|
-                text val
+                text (toString value)
     in
     column []
         (items
