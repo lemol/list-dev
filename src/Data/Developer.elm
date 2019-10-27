@@ -1,23 +1,15 @@
-module DeveloperTrending.Data exposing (..)
+module Data.Developer exposing (Developer, DeveloperListWebData, Sort(..), fetchDeveloperList)
 
 import Http
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..), WebData)
-import Utils.ListDropdown exposing (DropdownModel, DropdownMsg, initListDropdown)
 
 
 
--- MODEL
+-- TYPES
 
 
-type alias Model =
-    { users : WebData (List User)
-    , usersSort : UsersSort
-    , sortDropdown : DropdownModel
-    }
-
-
-type alias User =
+type alias Developer =
     { login : String
     , name : String
     , avatar : String
@@ -26,7 +18,11 @@ type alias User =
     }
 
 
-type UsersSort
+type alias DeveloperListWebData =
+    WebData (List Developer)
+
+
+type Sort
     = BestMatch
     | MostFollowers
     | FewestFollowers
@@ -36,34 +32,13 @@ type UsersSort
     | FewestRepositories
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { users = Loading
-      , usersSort = BestMatch
-      , sortDropdown = initListDropdown
-      }
-    , fetchUsers BestMatch
-    )
-
-
-
--- MESSAGE
-
-
-type Msg
-    = FetchUsersResponse (WebData (List User))
-    | FetchUsers
-    | ChangeUsersSort UsersSort
-    | SortDropdownMsg DropdownMsg
-
-
 
 -- SERIALIZATION
 
 
-userDecoder : Decode.Decoder User
-userDecoder =
-    Decode.map5 User
+developerDecoder : Decode.Decoder Developer
+developerDecoder =
+    Decode.map5 Developer
         (Decode.field "login" Decode.string)
         (Decode.field "login" Decode.string)
         (Decode.field "avatar_url" Decode.string)
@@ -71,18 +46,18 @@ userDecoder =
         (Decode.field "html_url" Decode.string)
 
 
-usersDecoder : Decode.Decoder (List User)
-usersDecoder =
-    Decode.field "items" (Decode.list userDecoder)
+developerListDecoder : Decode.Decoder (List Developer)
+developerListDecoder =
+    Decode.field "items" (Decode.list developerDecoder)
 
 
 
 -- API
 
 
-sortToQueryString : UsersSort -> String
-sortToQueryString sort =
-    case sort of
+sortToQueryString : Sort -> String
+sortToQueryString sortBy =
+    case sortBy of
         BestMatch ->
             "order=desc"
 
@@ -105,13 +80,13 @@ sortToQueryString sort =
             "order=asc&sort=repositories"
 
 
-fetchUsers : UsersSort -> Cmd Msg
-fetchUsers sort =
+fetchDeveloperList : Sort -> (WebData (List Developer) -> msg) -> Cmd msg
+fetchDeveloperList sortBy toMsg =
     let
         usersUrl =
-            "https://api.github.com/search/users?q=location:Angola+location:luanda&per_page=20&" ++ sortToQueryString sort
+            "https://api.github.com/search/users?q=location:Angola+type:user&per_page=20&" ++ sortToQueryString sortBy
     in
     Http.get
         { url = usersUrl
-        , expect = Http.expectJson (RemoteData.fromResult >> FetchUsersResponse) usersDecoder
+        , expect = Http.expectJson (RemoteData.fromResult >> toMsg) developerListDecoder
         }

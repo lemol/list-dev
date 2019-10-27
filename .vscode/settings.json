@@ -1,11 +1,61 @@
 {
-    "[elm]": {
-        "editor.formatOnSave": true
-    },
-    "elm.compiler": "./node_modules/.bin/elm",
-    "elm.formatCommand": "./node_modules/.bin/elm-format",
-    "elm.analyseCommand": "./node_modules/.bin/elm-analyse",
-    "workbench.colorCustomizations": {
-        "tab.unfocusedActiveBorder": "#fff0"
-    }
+  "[elm]": {
+    "editor.formatOnSave": true
+  },
+  "elm.compiler": "./node_modules/.bin/elm",
+  "elm.formatCommand": "./node_modules/.bin/elm-format",
+  "elm.analyseCommand": "./node_modules/.bin/elm-analyse",
+  "workbench.colorCustomizations": {
+    "tab.unfocusedActiveBorder": "#fff0"
+  },
+  "files.exclude": {
+    "**/elm-stuff": true,
+    "**/repl-temp-*": true,
+    "**/logs": true,
+    "**/*.log": true,
+    "**/npm-debug.log*": true,
+    "**/yarn-debug.log*": true,
+    "**/yarn-error.log*": true,
+    "**/lerna-debug.log*": true,
+    "**/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json": true,
+    "**/pids": true,
+    "**/*.pid": true,
+    "**/*.seed": true,
+    "**/*.pid.lock": true,
+    "**/lib-cov": true,
+    "**/coverage": true,
+    "**/*.lcov": true,
+    "**/.nyc_output": true,
+    "**/.grunt": true,
+    "**/bower_components": true,
+    "**/.lock-wscript": true,
+    "build/Release": true,
+    "**/node_modules/": true,
+    "**/jspm_packages/": true,
+    "**/typings/": true,
+    "**/*.tsbuildinfo": true,
+    "**/.npm": true,
+    "**/.eslintcache": true,
+    "**/.rpt2_cache/": true,
+    "**/.rts2_cache_cjs/": true,
+    "**/.rts2_cache_es/": true,
+    "**/.rts2_cache_umd/": true,
+    "**/.node_repl_history": true,
+    "**/*.tgz": true,
+    "**/.yarn-integrity": true,
+    "**/.env": true,
+    "**/.env.test": true,
+    "**/.cache": true,
+    "**/.next": true,
+    "**/.nuxt": true,
+    "**/.cache/": true,
+    "**/public": true,
+    ".vuepress/dist": true,
+    "**/.serverless/": true,
+    "**/.fusebox/": true,
+    "**/.dynamodb/": true,
+    "**/.tern-port": true,
+    "**/dist": true,
+    "**/material-ui": true
+  }
 }
