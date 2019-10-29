@@ -1,12 +1,13 @@
 module Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
-import Element exposing (Element, below, centerY, column, el, fill, focused, height, maximum, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
+import Element exposing (Element, below, centerY, column, el, fill, focused, height, html, inFront, maximum, mouseOver, onLeft, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import RemoteData exposing (RemoteData(..))
+import Utils.Icon exposing (checkIcon)
 
 
 
@@ -64,7 +65,7 @@ dropdownMenu title description defaultText options toString model toMsg =
         stateAttrs =
             case model.state of
                 Opened ->
-                    [ below (listDropdownBody description options toString ChangeSelected)
+                    [ below (listDropdownBody description options toString model ChangeSelected)
                         |> Element.mapAttribute toMsg
                     ]
 
@@ -105,8 +106,8 @@ dropdownMenu title description defaultText options toString model toMsg =
         }
 
 
-listDropdownBody : String -> Maybe (List value) -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
-listDropdownBody description options toString onChange =
+listDropdownBody : String -> Maybe (List value) -> (value -> String) -> DropdownModel value -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
+listDropdownBody description options toString model onChange =
     let
         listTitle =
             el
@@ -118,26 +119,49 @@ listDropdownBody description options toString onChange =
                 ]
                 (el [ centerY ] <| text description)
 
+        selectedAttrs value =
+            case model.selected of
+                Nothing ->
+                    []
+
+                Just selected ->
+                    if selected /= value then
+                        []
+
+                    else
+                        [ Font.bold
+                        , Font.color <| rgb255 0x00 0x00 0x00
+                        , inFront <|
+                            el
+                                [ centerY
+                                , padding 8
+                                , Font.color <| rgb255 255 0 0
+                                ]
+                                (html checkIcon)
+                        ]
+
         itemButton _ value =
             el
-                [ width fill
-                , height <| px 34
-                , paddingEach { left = 30, right = 8, top = 8, bottom = 8 }
-                , pointer
-                , Font.color <| rgb255 0x58 0x60 0x69
-                , Border.color <| rgb255 0xEA 0xEC 0xEF
-                , Border.widthEach
+                ([ width fill
+                 , height <| px 34
+                 , paddingEach { left = 30, right = 8, top = 8, bottom = 8 }
+                 , pointer
+                 , Font.color <| rgb255 0x58 0x60 0x69
+                 , Border.color <| rgb255 0xEA 0xEC 0xEF
+                 , Border.widthEach
                     { left = 0
                     , right = 0
                     , top = 1
                     , bottom = 0
                     }
-                , Events.onClick <| onChange (Just value)
-                , mouseOver
+                 , Events.onClick <| onChange (Just value)
+                 , mouseOver
                     [ Font.color <| rgb255 0xFF 0xFF 0xFF
                     , Background.color <| rgb255 0x03 0x66 0xD6
                     ]
-                ]
+                 ]
+                    ++ selectedAttrs value
+                )
             <|
                 el
                     [ centerY ]
