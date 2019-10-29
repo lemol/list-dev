@@ -5,6 +5,7 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html)
+import Html.Attributes exposing (target)
 import Page.DeveloperList as DevList
 import RemoteData exposing (RemoteData(..))
 
@@ -118,8 +119,9 @@ headerBar =
 
         leftContent =
             row
-                []
+                [ spacing 16 ]
                 [ logo
+                , menuView
                 ]
 
         rightContent =
@@ -142,6 +144,28 @@ headerBar =
             [ leftContent
             , rightContent
             ]
+
+
+menuView : Element msg
+menuView =
+    let
+        menuItem url label =
+            link
+                [ Font.size 14
+                , Font.color <| rgb255 0xFF 0xFF 0xFF
+                , Font.bold
+                , htmlAttribute <| target "_blank"
+                , mouseOver
+                    [ Font.color <| rgba255 0xFF 0xFF 0xFF 0.7 ]
+                ]
+                { url = url
+                , label = text label
+                }
+    in
+    row
+        []
+        [ menuItem "https://github.com/lemol/angolans-on-github-elm" "Source code"
+        ]
 
 
 mainFontFamily : List Font.Font
