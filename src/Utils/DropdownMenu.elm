@@ -1,6 +1,6 @@
 module Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
-import Element exposing (Element, below, centerY, column, el, fill, focused, height, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, spacing, text, width)
+import Element exposing (Element, below, centerY, column, el, fill, focused, height, maximum, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
@@ -58,8 +58,8 @@ updateDropdownMenu msg model =
 -- VIEW
 
 
-dropdownMenu : String -> String -> List value -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
-dropdownMenu title description options toString model toMsg =
+dropdownMenu : String -> String -> String -> Maybe (List value) -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
+dropdownMenu title description defaultText options toString model toMsg =
     let
         stateAttrs =
             case model.state of
@@ -97,7 +97,7 @@ dropdownMenu title description options toString model toMsg =
                     ]
                     (model.selected
                         |> Maybe.map toString
-                        |> Maybe.withDefault "-"
+                        |> Maybe.withDefault defaultText
                         |> text
                     )
                 , text "▾"
@@ -105,8 +105,8 @@ dropdownMenu title description options toString model toMsg =
         }
 
 
-listDropdownBody : String -> List value -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
-listDropdownBody description items toString onChange =
+listDropdownBody : String -> Maybe (List value) -> (value -> String) -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
+listDropdownBody description options toString onChange =
     let
         listTitle =
             el
@@ -138,7 +138,10 @@ listDropdownBody description items toString onChange =
                     , Background.color <| rgb255 0x03 0x66 0xD6
                     ]
                 ]
-                (el [ centerY ] <| text (toString value))
+            <|
+                el
+                    [ centerY ]
+                    (text <| toString value)
     in
     el
         [ paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
@@ -161,7 +164,12 @@ listDropdownBody description items toString onChange =
             [ listTitle
             , column
                 [ width fill
+                , height <| maximum 400 fill
+                , scrollbarY
                 , Background.color <| rgb255 0xFF 0xFF 0xFF
                 ]
-                (List.indexedMap itemButton items)
+                (options
+                    |> Maybe.withDefault []
+                    |> List.indexedMap itemButton
+                )
             ]

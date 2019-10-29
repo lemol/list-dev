@@ -19,22 +19,27 @@ import Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu
 
 type alias Model =
     { developers : DeveloperListWebData
-    , sortBy : Sort
+    , languages : LanguageListWebData
     , sortDropdown : DropdownModel Sort
-    , language : LanguageFilter
-    , languageDropdown : DropdownModel LanguageFilter
+    , languageFilterDropdown : DropdownModel Language
+    , sort : Sort
+    , languageFilter : Maybe Language
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { developers = Loading
-      , sortBy = BestMatch
-      , language = Nothing
+    ( { developers = NotAsked
+      , languages = NotAsked
       , sortDropdown = initDropdownMenu (Just BestMatch)
-      , languageDropdown = initDropdownMenu Nothing
+      , languageFilterDropdown = initDropdownMenu Nothing
+      , sort = BestMatch
+      , languageFilter = Nothing
       }
-    , fetchDeveloperList BestMatch Nothing FetchDeveloperListResponse
+    , Cmd.batch
+        [ fetchDeveloperList BestMatch Nothing FetchDeveloperListResponse
+        , fetchLanguageList FetchLanguageListResponse
+        ]
     )
 
 
@@ -44,11 +49,12 @@ init =
 
 type Msg
     = FetchDeveloperListResponse DeveloperListWebData
+    | FetchLanguageListResponse LanguageListWebData
     | FetchDeveloperList
     | ChangeSort Sort
     | SortDropdownMsg (DropdownMsg Sort)
-    | ChangeLanguage LanguageFilter
-    | LanguageDropdownMsg (DropdownMsg LanguageFilter)
+    | ChangeLanguage (Maybe Language)
+    | LanguageDropdownMsg (DropdownMsg Language)
 
 
 
@@ -60,7 +66,7 @@ update msg model =
     case msg of
         FetchDeveloperList ->
             ( model
-            , fetchDeveloperList model.sortBy model.language FetchDeveloperListResponse
+            , fetchDeveloperList model.sort model.languageFilter FetchDeveloperListResponse
             )
 
         FetchDeveloperListResponse response ->
@@ -68,10 +74,15 @@ update msg model =
             , Cmd.none
             )
 
+        FetchLanguageListResponse response ->
+            ( { model | languages = response }
+            , Cmd.none
+            )
+
         ChangeSort newSort ->
             let
                 newModel =
-                    { model | sortBy = newSort }
+                    { model | sort = newSort }
             in
             update FetchDeveloperList newModel
 
@@ -95,19 +106,19 @@ update msg model =
         ChangeLanguage newLanguage ->
             let
                 newModel =
-                    { model | language = newLanguage }
+                    { model | languageFilter = newLanguage }
             in
             update FetchDeveloperList newModel
 
         LanguageDropdownMsg subMsg ->
             let
                 dropdownUpdated =
-                    { model | languageDropdown = updateDropdownMenu subMsg model.languageDropdown }
+                    { model | languageFilterDropdown = updateDropdownMenu subMsg model.languageFilterDropdown }
 
                 ( modelUpdated, cmd ) =
                     case subMsg of
                         ChangeSelected newSelected ->
-                            update (ChangeLanguage <| Maybe.withDefault Nothing newSelected) dropdownUpdated
+                            update (ChangeLanguage newSelected) dropdownUpdated
 
                         _ ->
                             ( dropdownUpdated, Cmd.none )
@@ -203,8 +214,8 @@ mainSectionView model =
                         ]
                     , row
                         [ alignRight, spacing 32 ]
-                        [ dropdownMenu "Language:" "Select a language" languageValues languageToString model.languageDropdown LanguageDropdownMsg
-                        , dropdownMenu "Sort:" "Sort options" sortValues sortToString model.sortDropdown SortDropdownMsg
+                        [ dropdownMenu "Language:" "Select a languageFilter" "Any" (languageValues model.languages) languageToString model.languageFilterDropdown LanguageDropdownMsg
+                        , dropdownMenu "Sort:" "Sort options" "Select" sortValues sortToString model.sortDropdown SortDropdownMsg
                         ]
                     ]
     in

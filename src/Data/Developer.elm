@@ -1,4 +1,4 @@
-module Data.Developer exposing (Developer, DeveloperListWebData, LanguageFilter, Sort(..), fetchDeveloperList, languageToString, languageValues, sortToString, sortValues)
+module Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, Sort(..), fetchDeveloperList, fetchLanguageList, languageToString, languageValues, sortToString, sortValues)
 
 import Http
 import Json.Decode as Decode
@@ -32,43 +32,39 @@ type Sort
     | FewestRepositories
 
 
-type alias LanguageFilter =
-    Maybe String
+type alias Language =
+    String
+
+
+type alias LanguageListWebData =
+    WebData (List Language)
 
 
 
 -- SERIALIZATION
 
 
-languageValues : List LanguageFilter
+languageValues : LanguageListWebData -> Maybe (List Language)
 languageValues =
-    List.map Just
-        [ "C#"
-        , "Elm"
-        , "Haskell"
-        , "Javascript"
-        , "PHP"
-        , "Python"
-        , "Ruby"
-        , "Typescript"
-        ]
+    RemoteData.toMaybe
 
 
-languageToString : LanguageFilter -> String
+languageToString : Language -> String
 languageToString =
-    Maybe.withDefault "Any"
+    identity
 
 
-sortValues : List Sort
+sortValues : Maybe (List Sort)
 sortValues =
-    [ BestMatch
-    , MostFollowers
-    , FewestFollowers
-    , MostRecentlyJoined
-    , LeastRecentlyJoined
-    , MostRepositories
-    , FewestRepositories
-    ]
+    Just
+        [ BestMatch
+        , MostFollowers
+        , FewestFollowers
+        , MostRecentlyJoined
+        , LeastRecentlyJoined
+        , MostRepositories
+        , FewestRepositories
+        ]
 
 
 sortToString : Sort -> String
@@ -111,6 +107,16 @@ developerListDecoder =
     Decode.field "items" (Decode.list developerDecoder)
 
 
+languageDecoder : Decode.Decoder Language
+languageDecoder =
+    Decode.field "name" Decode.string
+
+
+languageListDecoder : Decode.Decoder (List Language)
+languageListDecoder =
+    Decode.list languageDecoder
+
+
 
 -- API
 
@@ -140,7 +146,7 @@ sortToQueryString sortBy =
             "&order=asc&sort=repositories"
 
 
-languageFilterToQueryString : LanguageFilter -> String
+languageFilterToQueryString : Maybe Language -> String
 languageFilterToQueryString filter =
     case filter of
         Nothing ->
@@ -150,7 +156,7 @@ languageFilterToQueryString filter =
             "+language:" ++ str
 
 
-fetchDeveloperList : Sort -> LanguageFilter -> (WebData (List Developer) -> msg) -> Cmd msg
+fetchDeveloperList : Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
 fetchDeveloperList sortBy languageFilter toMsg =
     let
         usersUrl =
@@ -162,4 +168,12 @@ fetchDeveloperList sortBy languageFilter toMsg =
     Http.get
         { url = usersUrl
         , expect = Http.expectJson (RemoteData.fromResult >> toMsg) developerListDecoder
+        }
+
+
+fetchLanguageList : (LanguageListWebData -> msg) -> Cmd msg
+fetchLanguageList toMsg =
+    Http.get
+        { url = "languages.json"
+        , expect = Http.expectJson (RemoteData.fromResult >> toMsg) languageListDecoder
         }
