@@ -127,7 +127,7 @@ headerBar =
         rightContent =
             row
                 [ alignRight ]
-                [ text "AVATAR" ]
+                [ text "" ]
     in
     el
         [ width fill
