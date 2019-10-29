@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel static/index.html"
+    "dev": "parcel static/index.html",
+    "build": "parcel build --out-dir public static/index.html"
   },
   "devDependencies": {
     "elm": "^0.19.1-3",
