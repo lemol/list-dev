@@ -154,7 +154,14 @@ listDropdownBody description options toString model onChange =
                     , top = 1
                     , bottom = 0
                     }
-                 , Events.onClick <| onChange (Just value)
+                 , Events.onClick <|
+                    onChange
+                        (if model.selected == Just value then
+                            Nothing
+
+                         else
+                            Just value
+                        )
                  , mouseOver
                     [ Font.color <| rgb255 0xFF 0xFF 0xFF
                     , Background.color <| rgb255 0x03 0x66 0xD6

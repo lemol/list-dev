@@ -9,12 +9,19 @@ import RemoteData exposing (RemoteData(..), WebData)
 -- TYPES
 
 
+type alias Repository =
+    { name : String
+    , description : String
+    }
+
+
 type alias Developer =
     { login : String
     , name : String
     , avatar : String
     , url : String
     , htmlUrl : String
+    , popularRepo : Maybe Repository
     }
 
 
@@ -94,12 +101,13 @@ sortToString sort =
 
 developerDecoder : Decode.Decoder Developer
 developerDecoder =
-    Decode.map5 Developer
+    Decode.map6 Developer
         (Decode.field "login" Decode.string)
         (Decode.field "login" Decode.string)
         (Decode.field "avatar_url" Decode.string)
         (Decode.field "url" Decode.string)
         (Decode.field "html_url" Decode.string)
+        (Decode.succeed Nothing)
 
 
 developerListDecoder : Decode.Decoder (List Developer)

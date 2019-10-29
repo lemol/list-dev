@@ -252,7 +252,7 @@ developerListView devData =
 
 
 developerListItemView : Int -> Developer -> Element Msg
-developerListItemView count user =
+developerListItemView count developer =
     row
         [ width fill
         , padding 16
@@ -281,7 +281,7 @@ developerListItemView count user =
                 (text <| String.fromInt (count + 1))
             , link
                 []
-                { url = "#/Users/" ++ user.login
+                { url = "#/Users/" ++ developer.login
                 , label =
                     row
                         [ width fill
@@ -294,7 +294,7 @@ developerListItemView count user =
                                     , style "height" "52px"
                                     , style "border-radius" "3px"
                                     , style "border-width" "1px"
-                                    , src user.avatar
+                                    , src developer.avatar
                                     ]
                                     []
                         , column
@@ -304,41 +304,51 @@ developerListItemView count user =
                                 , Font.bold
                                 , Font.color <| rgb255 3 102 214
                                 ]
-                                (text user.name)
+                                (text developer.name)
                             , el
                                 [ Font.size 16
                                 , Font.color <| rgb255 88 96 105
                                 , mouseOver [ Font.color <| rgb255 3 102 214 ]
                                 ]
-                                (text user.login)
+                                (text developer.login)
                             ]
                         ]
                 }
             ]
-        , column
-            [ width (fill |> maximum 300)
-            , spacingXY 0 9
-            ]
-            [ el
-                [ Font.size 16
-                , Font.variant Font.smallCaps
-                , Font.color <| rgb255 88 96 105
-                ]
-                (text "popular repo")
-            , link
-                [ Font.size 16
-                , Font.color <| rgb255 3 102 214
-                , Font.semiBold
-                ]
-                { url = "#", label = text "angolans-on-github-elm" }
-            , paragraph
-                [ Font.size 12
-                , Font.color <| rgb255 88 96 105
-                ]
-                [ text "Github Trending page clone using elm-ui. Almost zero css+javascript+html." ]
-            ]
+        , popularRepoView developer
         , row
             [ width fill
             ]
-            [ el [ alignRight ] (githubTextLink user.htmlUrl "Profile") ]
+            [ el [ alignRight ] (githubTextLink developer.htmlUrl "Profile") ]
         ]
+
+
+popularRepoView : Developer -> Element msg
+popularRepoView developer =
+    case developer.popularRepo of
+        Nothing ->
+            Element.none
+
+        Just popularRepo ->
+            column
+                [ width (fill |> maximum 300)
+                , spacingXY 0 9
+                ]
+                [ el
+                    [ Font.size 16
+                    , Font.variant Font.smallCaps
+                    , Font.color <| rgb255 88 96 105
+                    ]
+                    (text "popular repo")
+                , link
+                    [ Font.size 16
+                    , Font.color <| rgb255 3 102 214
+                    , Font.semiBold
+                    ]
+                    { url = "#", label = text popularRepo.name }
+                , paragraph
+                    [ Font.size 12
+                    , Font.color <| rgb255 88 96 105
+                    ]
+                    [ text popularRepo.description ]
+                ]
