@@ -289,7 +289,7 @@ onBlur =
             Decode.at [ "relatedTarget", "attributes", referenceDataName, "value" ] Decode.string
 
         attrToMsg attr =
-            if Debug.log attr attr == "filterBox" then
+            if attr == "filterBox" then
                 NoOp
 
             else
