@@ -1,4 +1,4 @@
-module Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
+module Utils.SelectMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
 import Element exposing (Attribute, Element, below, centerY, column, el, fill, focused, height, html, htmlAttribute, inFront, mapAttribute, maximum, mouseOver, onLeft, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
 import Element.Background as Background

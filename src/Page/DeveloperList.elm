@@ -10,7 +10,7 @@ import Html.Attributes exposing (src, style)
 import Http
 import RemoteData exposing (RemoteData(..))
 import Utils.Button exposing (githubTextLink)
-import Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
+import Utils.SelectMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
 
 
