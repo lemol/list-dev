@@ -1,11 +1,14 @@
 module Utils.DropdownMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
 
-import Element exposing (Element, below, centerY, column, el, fill, focused, height, html, inFront, maximum, mouseOver, onLeft, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
+import Element exposing (Attribute, Element, below, centerY, column, el, fill, focused, height, html, htmlAttribute, inFront, mapAttribute, maximum, mouseOver, onLeft, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Html.Attributes
+import Html.Events
+import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..))
 import Utils.Icon exposing (checkIcon)
 
@@ -17,6 +20,8 @@ import Utils.Icon exposing (checkIcon)
 type alias DropdownModel value =
     { state : DropdownState
     , selected : Maybe value
+    , filter : String
+    , visibleOptions : List value
     }
 
 
@@ -29,6 +34,8 @@ initDropdownMenu : Maybe value -> DropdownModel value
 initDropdownMenu maybeValue =
     { state = Closed
     , selected = maybeValue
+    , filter = ""
+    , visibleOptions = []
     }
 
 
@@ -37,8 +44,10 @@ initDropdownMenu maybeValue =
 
 
 type DropdownMsg value
-    = ChangeState DropdownState
+    = NoOp
+    | ChangeState DropdownState
     | ChangeSelected (Maybe value)
+    | ChangeFilter String
 
 
 
@@ -48,11 +57,25 @@ type DropdownMsg value
 updateDropdownMenu : DropdownMsg value -> DropdownModel value -> DropdownModel value
 updateDropdownMenu msg model =
     case msg of
+        NoOp ->
+            model
+
         ChangeState newState ->
-            { model | state = newState }
+            { model
+                | state = newState
+                , filter =
+                    if newState == Closed then
+                        ""
+
+                    else
+                        model.filter
+            }
 
         ChangeSelected newSelected ->
-            { model | selected = newSelected, state = Closed }
+            { model | selected = newSelected, state = Closed, filter = "" }
+
+        ChangeFilter filter ->
+            { model | filter = filter }
 
 
 
@@ -75,7 +98,7 @@ dropdownMenu title description defaultText options toString model toMsg =
     Input.button
         ([ pointer
          , focused [ Border.color <| rgba255 0 0 0 1 ]
-         , Events.onLoseFocus (toMsg <| ChangeState Closed)
+         , mapAttribute toMsg onBlur
          ]
             ++ stateAttrs
         )
@@ -111,13 +134,51 @@ listDropdownBody description options toString model onChange =
     let
         listTitle =
             el
-                [ width fill
+                [ dropdownGroup
+                , tabIndex -1
+                , width fill
                 , height <| px 34
                 , padding 8
                 , Font.semiBold
                 , Background.color <| rgb255 0xF6 0xF8 0xFA
                 ]
                 (el [ centerY ] <| text description)
+
+        filterBox =
+            el
+                [ width fill
+                , padding 10
+                , Background.color <| rgb255 0xF6 0xF8 0xFA
+                , Border.color <| rgb255 0xDF 0xE2 0xE5
+                , Border.widthEach
+                    { left = 0
+                    , right = 0
+                    , top = 1
+                    , bottom = 1
+                    }
+                ]
+            <|
+                Input.search
+                    [ onBlur
+                    , dropdownGroup
+                    , padding 8
+                    , height <| px 32
+                    , tabIndex 0
+                    , Font.size 14
+                    , Border.color <| rgb255 0xDF 0xE2 0xE5
+                    , Border.width 1
+                    , Border.innerShadow
+                        { offset = ( 0, 1 )
+                        , size = 0
+                        , blur = 1
+                        , color = rgba255 27 31 35 0.075
+                        }
+                    ]
+                    { text = model.filter
+                    , placeholder = Just <| Input.placeholder [ centerY, height fill ] (text "Filter languages")
+                    , label = Input.labelHidden "Filter languages"
+                    , onChange = ChangeFilter
+                    }
 
         selectedAttrs value =
             case model.selected of
@@ -140,9 +201,11 @@ listDropdownBody description options toString model onChange =
                                 (html checkIcon)
                         ]
 
-        itemButton _ value =
+        itemButton index value =
             el
-                ([ width fill
+                ([ dropdownGroup
+                 , tabIndex (index + 1)
+                 , width fill
                  , height <| px 34
                  , paddingEach { left = 30, right = 8, top = 8, bottom = 8 }
                  , pointer
@@ -154,7 +217,7 @@ listDropdownBody description options toString model onChange =
                     , top = 1
                     , bottom = 0
                     }
-                 , Events.onClick <|
+                 , Events.onFocus <|
                     onChange
                         (if model.selected == Just value then
                             Nothing
@@ -193,6 +256,7 @@ listDropdownBody description options toString model onChange =
                 }
             ]
             [ listTitle
+            , filterBox
             , column
                 [ width fill
                 , height <| maximum 400 fill
@@ -201,6 +265,52 @@ listDropdownBody description options toString model onChange =
                 ]
                 (options
                     |> Maybe.withDefault []
+                    |> List.filter (toString >> String.toLower >> String.contains (String.toLower model.filter))
                     |> List.indexedMap itemButton
                 )
             ]
+
+
+dropdownGroup : Attribute msg
+dropdownGroup =
+    attribute referenceDataName "filterBox"
+
+
+referenceDataName : String
+referenceDataName =
+    "data-focus-group"
+
+
+onBlur : Attribute (DropdownMsg value)
+onBlur =
+    let
+        -- relatedTarget only works if element has tabindex
+        dataDecoder =
+            Decode.at [ "relatedTarget", "attributes", referenceDataName, "value" ] Decode.string
+
+        attrToMsg attr =
+            if Debug.log attr attr == "filterBox" then
+                NoOp
+
+            else
+                ChangeState Closed
+
+        blurDecoder =
+            Decode.maybe dataDecoder
+                |> Decode.map (Maybe.map attrToMsg)
+                |> Decode.map (Maybe.withDefault <| ChangeState Closed)
+    in
+    Html.Events.on "blur" blurDecoder
+        |> htmlAttribute
+
+
+attribute : String -> String -> Attribute msg
+attribute name value =
+    Html.Attributes.attribute name value
+        |> htmlAttribute
+
+
+tabIndex : Int -> Attribute msg
+tabIndex index =
+    Html.Attributes.tabindex index
+        |> htmlAttribute

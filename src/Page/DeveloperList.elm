@@ -214,7 +214,7 @@ mainSectionView model =
                         ]
                     , row
                         [ alignRight, spacing 32 ]
-                        [ dropdownMenu "Language:" "Select a languageFilter" "Any" (languageValues model.languages) languageToString model.languageFilterDropdown LanguageDropdownMsg
+                        [ dropdownMenu "Language:" "Select a language" "Any" (languageValues model.languages) languageToString model.languageFilterDropdown LanguageDropdownMsg
                         , dropdownMenu "Sort:" "Sort options" "Select" sortValues sortToString model.sortDropdown SortDropdownMsg
                         ]
                     ]
