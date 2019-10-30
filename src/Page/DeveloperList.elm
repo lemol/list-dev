@@ -10,7 +10,7 @@ import Html.Attributes exposing (src, style)
 import Http
 import RemoteData exposing (RemoteData(..))
 import Utils.Button exposing (githubTextLink)
-import Utils.SelectMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
+import Utils.SelectMenu as SelectMenu
 
 
 
@@ -18,26 +18,32 @@ import Utils.SelectMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, 
 
 
 type alias Model =
-    { developers : DeveloperListWebData
+    { --
+      -- PAGE MODEL
+      sort : Maybe Sort
+    , language : Maybe Language
+
+    -- REMOTE DATA
+    , developers : DeveloperListWebData
     , languages : LanguageListWebData
-    , sortDropdown : DropdownModel Sort
-    , languageFilterDropdown : DropdownModel Language
-    , sort : Sort
-    , languageFilter : Maybe Language
+
+    -- COMPONENTS DATA
+    , sortSelectMenu : SelectMenu.State Sort
+    , languageSelectMenu : SelectMenu.State Language
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { developers = NotAsked
+    ( { sort = Nothing
+      , language = Nothing
+      , developers = NotAsked
       , languages = NotAsked
-      , sortDropdown = initDropdownMenu (Just BestMatch)
-      , languageFilterDropdown = initDropdownMenu Nothing
-      , sort = BestMatch
-      , languageFilter = Nothing
+      , sortSelectMenu = SelectMenu.init (Just BestMatch)
+      , languageSelectMenu = SelectMenu.init Nothing
       }
     , Cmd.batch
-        [ fetchDeveloperList BestMatch Nothing FetchDeveloperListResponse
+        [ fetchDeveloperList Nothing Nothing FetchDeveloperListResponse
         , fetchLanguageList FetchLanguageListResponse
         ]
     )
@@ -48,13 +54,13 @@ init =
 
 
 type Msg
-    = FetchDeveloperListResponse DeveloperListWebData
-    | FetchLanguageListResponse LanguageListWebData
-    | FetchDeveloperList
-    | ChangeSort Sort
-    | SortDropdownMsg (DropdownMsg Sort)
+    = ChangeSort (Maybe Sort)
     | ChangeLanguage (Maybe Language)
-    | LanguageDropdownMsg (DropdownMsg Language)
+    | FetchDeveloperList
+    | FetchDeveloperListResponse DeveloperListWebData
+    | FetchLanguageListResponse LanguageListWebData
+    | SortSelectMsg (SelectMenu.Msg Sort)
+    | LanguageSelectMsg (SelectMenu.Msg Language)
 
 
 
@@ -64,9 +70,15 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ChangeSort newSort ->
+            update FetchDeveloperList { model | sort = newSort }
+
+        ChangeLanguage newLanguage ->
+            update FetchDeveloperList { model | language = newLanguage }
+
         FetchDeveloperList ->
             ( model
-            , fetchDeveloperList model.sort model.languageFilter FetchDeveloperListResponse
+            , fetchDeveloperList model.sort model.language FetchDeveloperListResponse
             )
 
         FetchDeveloperListResponse response ->
@@ -79,53 +91,27 @@ update msg model =
             , Cmd.none
             )
 
-        ChangeSort newSort ->
-            let
-                newModel =
-                    { model | sort = newSort }
-            in
-            update FetchDeveloperList newModel
+        SortSelectMsg subMsg ->
+            SelectMenu.updateState
+                { changeSelected = Just ChangeSort
+                , changeFilter = Nothing
+                , getter = .sortSelectMenu
+                , setter = \m s -> { m | sortSelectMenu = s }
+                , update = update
+                }
+                subMsg
+                model
 
-        SortDropdownMsg subMsg ->
-            let
-                dropdownUpdated =
-                    { model | sortDropdown = updateDropdownMenu subMsg model.sortDropdown }
-
-                ( modelUpdated, cmd ) =
-                    case subMsg of
-                        ChangeSelected newSelected ->
-                            update (ChangeSort <| Maybe.withDefault BestMatch newSelected) dropdownUpdated
-
-                        _ ->
-                            ( dropdownUpdated, Cmd.none )
-            in
-            ( modelUpdated
-            , cmd
-            )
-
-        ChangeLanguage newLanguage ->
-            let
-                newModel =
-                    { model | languageFilter = newLanguage }
-            in
-            update FetchDeveloperList newModel
-
-        LanguageDropdownMsg subMsg ->
-            let
-                dropdownUpdated =
-                    { model | languageFilterDropdown = updateDropdownMenu subMsg model.languageFilterDropdown }
-
-                ( modelUpdated, cmd ) =
-                    case subMsg of
-                        ChangeSelected newSelected ->
-                            update (ChangeLanguage newSelected) dropdownUpdated
-
-                        _ ->
-                            ( dropdownUpdated, Cmd.none )
-            in
-            ( modelUpdated
-            , cmd
-            )
+        LanguageSelectMsg subMsg ->
+            SelectMenu.updateState
+                { changeSelected = Just ChangeLanguage
+                , changeFilter = Nothing
+                , getter = .languageSelectMenu
+                , setter = \m s -> { m | languageSelectMenu = s }
+                , update = update
+                }
+                subMsg
+                model
 
 
 
@@ -214,8 +200,28 @@ mainSectionView model =
                         ]
                     , row
                         [ alignRight, spacing 32 ]
-                        [ dropdownMenu "Language:" "Select a language" "Any" (languageValues model.languages) languageToString model.languageFilterDropdown LanguageDropdownMsg
-                        , dropdownMenu "Sort:" "Sort options" "Select" sortValues sortToString model.sortDropdown SortDropdownMsg
+                        [ SelectMenu.view
+                            []
+                            { title = "Language:"
+                            , description = "Select a language"
+                            , defaultText = "Any"
+                            , options = languageValues model.languages
+                            , toString = languageToString
+                            , showFilter = True
+                            , model = model.languageSelectMenu
+                            , toMsg = LanguageSelectMsg
+                            }
+                        , SelectMenu.view
+                            []
+                            { title = "Sort:"
+                            , description = "Sort options"
+                            , defaultText = "Select"
+                            , options = sortValues
+                            , toString = sortToString
+                            , showFilter = False
+                            , model = model.sortSelectMenu
+                            , toMsg = SortSelectMsg
+                            }
                         ]
                     ]
     in

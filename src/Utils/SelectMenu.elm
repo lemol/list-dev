@@ -1,6 +1,6 @@
-module Utils.SelectMenu exposing (DropdownModel, DropdownMsg(..), dropdownMenu, initDropdownMenu, updateDropdownMenu)
+module Utils.SelectMenu exposing (Msg(..), State, UpdaterConfig, init, update, updateState, view)
 
-import Element exposing (Attribute, Element, below, centerY, column, el, fill, focused, height, html, htmlAttribute, inFront, mapAttribute, maximum, mouseOver, onLeft, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
+import Element exposing (Attribute, Element, below, centerY, column, el, fill, focused, height, html, htmlAttribute, inFront, mapAttribute, maximum, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
@@ -14,25 +14,45 @@ import Utils.Icon exposing (checkIcon)
 
 
 
+-- CONFIG
+
+
+type alias SelectMenuConfig value msg =
+    { title : String
+    , description : String
+    , defaultText : String
+    , options : Maybe (List value)
+    , toString : value -> String
+    , showFilter : Bool
+    , model : State value
+    , toMsg : Msg value -> msg
+    }
+
+
+type alias UpdaterConfig value model msg =
+    { changeSelected : Maybe (Maybe value -> msg)
+    , changeFilter : Maybe (String -> msg)
+    , getter : model -> State value
+    , setter : model -> State value -> model
+    , update : msg -> model -> ( model, Cmd msg )
+    }
+
+
+
 -- MODEL
 
 
-type alias DropdownModel value =
-    { state : DropdownState
+type alias State value =
+    { open : Bool
     , selected : Maybe value
     , filter : String
     , visibleOptions : List value
     }
 
 
-type DropdownState
-    = Opened
-    | Closed
-
-
-initDropdownMenu : Maybe value -> DropdownModel value
-initDropdownMenu maybeValue =
-    { state = Closed
+init : Maybe value -> State value
+init maybeValue =
+    { open = False
     , selected = maybeValue
     , filter = ""
     , visibleOptions = []
@@ -43,64 +63,110 @@ initDropdownMenu maybeValue =
 -- MESSAGE
 
 
-type DropdownMsg value
+type Msg value
     = NoOp
-    | ChangeState DropdownState
-    | ChangeSelected (Maybe value)
-    | ChangeFilter String
+    | SetOpen Bool
+    | SetSelected (Maybe value)
+    | SetFilter String
 
 
 
 -- UPDATE
 
 
-updateDropdownMenu : DropdownMsg value -> DropdownModel value -> DropdownModel value
-updateDropdownMenu msg model =
+updateState : UpdaterConfig value model msg -> Msg value -> model -> ( model, Cmd msg )
+updateState ({ getter, setter } as config) subMsg model =
+    let
+        ( selectMenuState, msgs ) =
+            update
+                config
+                subMsg
+                (getter model)
+
+        foldMsgs msgAct ( modelAcc, cmdAcc ) =
+            let
+                ( newModelAct, newCmdAct ) =
+                    config.update msgAct modelAcc
+            in
+            ( newModelAct
+            , Cmd.batch [ cmdAcc, newCmdAct ]
+            )
+
+        ( newModel, newCmds ) =
+            msgs
+                |> List.foldl foldMsgs ( model, Cmd.none )
+    in
+    ( setter newModel selectMenuState
+    , newCmds
+    )
+
+
+update : UpdaterConfig value model msg -> Msg value -> State value -> ( State value, List msg )
+update config msg model =
     case msg of
         NoOp ->
-            model
+            ( model, [] )
 
-        ChangeState newState ->
-            { model
-                | state = newState
-                , filter =
-                    if newState == Closed then
-                        ""
+        SetOpen newOpen ->
+            let
+                newFilter =
+                    if newOpen then
+                        model.filter
 
                     else
-                        model.filter
-            }
+                        ""
 
-        ChangeSelected newSelected ->
-            { model | selected = newSelected, state = Closed, filter = "" }
+                msgs =
+                    Maybe.withDefault [] (Maybe.map (\f -> [ f newFilter ]) config.changeFilter)
+            in
+            ( { model
+                | open = newOpen
+                , filter = newFilter
+              }
+            , msgs
+            )
 
-        ChangeFilter filter ->
-            { model | filter = filter }
+        SetSelected newSelected ->
+            let
+                msgs =
+                    Maybe.withDefault [] (Maybe.map (\f -> [ f "" ]) config.changeFilter)
+                        ++ Maybe.withDefault [] (Maybe.map (\f -> [ f newSelected ]) config.changeSelected)
+            in
+            ( { model | selected = newSelected, open = False, filter = "" }
+            , msgs
+            )
+
+        SetFilter filter ->
+            let
+                msgs =
+                    Maybe.withDefault [] (Maybe.map (\f -> [ f filter ]) config.changeFilter)
+            in
+            ( { model | filter = filter }, msgs )
 
 
 
 -- VIEW
 
 
-dropdownMenu : String -> String -> String -> Maybe (List value) -> (value -> String) -> DropdownModel value -> (DropdownMsg value -> msg) -> Element msg
-dropdownMenu title description defaultText options toString model toMsg =
+view : List (Attribute msg) -> SelectMenuConfig value msg -> Element msg
+view attrs ({ title, defaultText, toString, model, toMsg } as config) =
     let
-        stateAttrs =
-            case model.state of
-                Opened ->
-                    [ below (listDropdownBody description options toString model ChangeSelected)
-                        |> Element.mapAttribute toMsg
-                    ]
+        openAttrs =
+            if model.open then
+                [ below (listDropdownBody config)
+                    |> Element.mapAttribute toMsg
+                ]
 
-                Closed ->
-                    []
+            else
+                []
     in
     Input.button
         ([ pointer
          , focused [ Border.color <| rgba255 0 0 0 1 ]
          , mapAttribute toMsg onBlur
          ]
-            ++ stateAttrs
+            ++ openAttrs
+            ++ attrs
         )
         { onPress = Nothing
         , label =
@@ -110,8 +176,7 @@ dropdownMenu title description defaultText options toString model toMsg =
                 , Font.color <| rgb255 88 96 105
                 , mouseOver
                     [ Font.color <| rgb255 36 41 46 ]
-                , Events.onClick (toMsg <| ChangeState Opened)
-                , Events.onFocus (toMsg <| ChangeState Opened)
+                , Events.onClick (toMsg <| SetOpen True)
                 ]
                 [ el
                     []
@@ -129,8 +194,8 @@ dropdownMenu title description defaultText options toString model toMsg =
         }
 
 
-listDropdownBody : String -> Maybe (List value) -> (value -> String) -> DropdownModel value -> (Maybe value -> DropdownMsg value) -> Element (DropdownMsg value)
-listDropdownBody description options toString model onChange =
+listDropdownBody : SelectMenuConfig value msg -> Element (Msg value)
+listDropdownBody { description, options, toString, model, showFilter } =
     let
         listTitle =
             el
@@ -177,7 +242,7 @@ listDropdownBody description options toString model onChange =
                     { text = model.filter
                     , placeholder = Just <| Input.placeholder [ centerY, height fill ] (text "Filter languages")
                     , label = Input.labelHidden "Filter languages"
-                    , onChange = ChangeFilter
+                    , onChange = SetFilter
                     }
 
         selectedAttrs value =
@@ -218,13 +283,11 @@ listDropdownBody description options toString model onChange =
                     , bottom = 0
                     }
                  , Events.onFocus <|
-                    onChange
-                        (if model.selected == Just value then
-                            Nothing
+                    if model.selected == Just value then
+                        NoOp
 
-                         else
-                            Just value
-                        )
+                    else
+                        SetSelected (Just value)
                  , mouseOver
                     [ Font.color <| rgb255 0xFF 0xFF 0xFF
                     , Background.color <| rgb255 0x03 0x66 0xD6
@@ -256,7 +319,11 @@ listDropdownBody description options toString model onChange =
                 }
             ]
             [ listTitle
-            , filterBox
+            , if showFilter then
+                filterBox
+
+              else
+                Element.none
             , column
                 [ width fill
                 , height <| maximum 400 fill
@@ -281,7 +348,7 @@ referenceDataName =
     "data-focus-group"
 
 
-onBlur : Attribute (DropdownMsg value)
+onBlur : Attribute (Msg value)
 onBlur =
     let
         -- relatedTarget only works if element has tabindex
@@ -293,12 +360,12 @@ onBlur =
                 NoOp
 
             else
-                ChangeState Closed
+                SetOpen False
 
         blurDecoder =
             Decode.maybe dataDecoder
                 |> Decode.map (Maybe.map attrToMsg)
-                |> Decode.map (Maybe.withDefault <| ChangeState Closed)
+                |> Decode.map (Maybe.withDefault <| SetOpen False)
     in
     Html.Events.on "blur" blurDecoder
         |> htmlAttribute

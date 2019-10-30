@@ -129,29 +129,35 @@ languageListDecoder =
 -- API
 
 
-sortToQueryString : Sort -> String
+sortToQueryString : Maybe Sort -> String
 sortToQueryString sortBy =
-    case sortBy of
-        BestMatch ->
-            "&order=desc"
+    let
+        toString sort =
+            case sort of
+                BestMatch ->
+                    "&order=desc"
 
-        MostFollowers ->
-            "&order=desc&sort=followers"
+                MostFollowers ->
+                    "&order=desc&sort=followers"
 
-        FewestFollowers ->
-            "&order=asc&sort=followers"
+                FewestFollowers ->
+                    "&order=asc&sort=followers"
 
-        MostRecentlyJoined ->
-            "&order=desc&sort=joined"
+                MostRecentlyJoined ->
+                    "&order=desc&sort=joined"
 
-        LeastRecentlyJoined ->
-            "&order=asc&sort=joined"
+                LeastRecentlyJoined ->
+                    "&order=asc&sort=joined"
 
-        MostRepositories ->
-            "&order=desc&sort=repositories"
+                MostRepositories ->
+                    "&order=desc&sort=repositories"
 
-        FewestRepositories ->
-            "&order=asc&sort=repositories"
+                FewestRepositories ->
+                    "&order=asc&sort=repositories"
+    in
+    sortBy
+        |> Maybe.withDefault BestMatch
+        |> toString
 
 
 languageFilterToQueryString : Maybe Language -> String
@@ -164,7 +170,7 @@ languageFilterToQueryString filter =
             "+language:" ++ str
 
 
-fetchDeveloperList : Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
+fetchDeveloperList : Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
 fetchDeveloperList sortBy languageFilter toMsg =
     let
         usersUrl =
