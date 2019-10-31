@@ -5,9 +5,9 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style)
-import Http
 import RemoteData exposing (RemoteData(..))
 import Utils.Button exposing (githubTextLink)
 import Utils.SelectMenu as SelectMenu
@@ -78,6 +78,7 @@ update msg model =
 
         FetchDeveloperList ->
             ( model
+              -- Set Loading state??
             , fetchDeveloperList model.sort model.language FetchDeveloperListResponse
             )
 
@@ -224,6 +225,23 @@ mainSectionView model =
                             }
                         ]
                     ]
+
+        body =
+            case model.developers of
+                Success [] ->
+                    emptyListView model.language
+
+                Success developers ->
+                    developerListView developers
+
+                Failure _ ->
+                    text "Something wrong is going on... :("
+
+                Loading ->
+                    text "Loading..."
+
+                NotAsked ->
+                    none
     in
     el
         [ width fill
@@ -238,23 +256,64 @@ mainSectionView model =
             , Border.rounded 3
             ]
             [ top
-            , developerListView model.developers
+            , body
             ]
 
 
-developerListView : DeveloperListWebData -> Element Msg
-developerListView devData =
-    case devData of
-        Success developers ->
-            developers
-                |> List.indexedMap developerListItemView
-                |> column [ width fill ]
+emptyListView : Maybe Language -> Element msg
+emptyListView language =
+    let
+        lang =
+            Maybe.withDefault "Any Language" language
+    in
+    textColumn
+        [ centerX
+        , centerY
+        , padding 32
+        , height <| px 146
+        , spacing 4
+        , Font.color <| rgb255 0x24 0x29 0x2E
+        ]
+        [ paragraph
+            [ Region.heading 3
+            , Font.center
+            , Font.bold
+            , Font.size 20
+            ]
+            [ text <| "It looks like there is not any Angolan developer for " ++ lang ++ "." ]
+        , paragraph
+            [ centerX
+            , Font.size 14
+            , Font.center
+            ]
+            [ row
+                []
+                [ text <| "If you "
+                , link
+                    [ Font.color <| rgb255 3 102 214 ]
+                    { url = "https://github.com/new"
+                    , label =
+                        row
+                            []
+                            [ text "you create an "
+                            , el [ Font.bold ] (text lang)
+                            , text " repository"
+                            ]
+                    }
+                , text <| ", you can really own the place."
+                ]
+            ]
+        , paragraph
+            [ Font.center
+            , Font.size 14
+            ]
+            [ el [ centerX ] <| text "We’d even let it slide if you started calling yourself the mayor." ]
+        ]
 
-        Failure (Http.BadBody err) ->
-            text err
 
-        _ ->
-            text "Loading..."
+developerListView : List Developer -> Element Msg
+developerListView =
+    List.indexedMap developerListItemView >> column [ width fill ]
 
 
 developerListItemView : Int -> Developer -> Element Msg
