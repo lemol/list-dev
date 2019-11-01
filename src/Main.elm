@@ -1,13 +1,14 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Navigation as Navigation
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
-import Html exposing (Html)
 import Html.Attributes exposing (target)
 import Page.DeveloperList as DevList
-import RemoteData exposing (RemoteData(..))
+import Url
+import Url.Parser as Parser exposing (Parser, map, oneOf, s, top)
 
 
 
@@ -15,23 +16,15 @@ import RemoteData exposing (RemoteData(..))
 
 
 type Page
-    = DeveloperListPage
+    = NotFound
+    | DeveloperListPage
 
 
 type alias Model =
     { devListPage : DevList.Model
     , page : Page
+    , key : Navigation.Key
     }
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( { devListPage = Tuple.first DevList.init
-      , page = DeveloperListPage
-      }
-    , Cmd.batch
-        [ Cmd.map DevListMsg <| Tuple.second DevList.init ]
-    )
 
 
 
@@ -39,26 +32,42 @@ init =
 
 
 type Msg
-    = DevListMsg DevList.Msg
+    = LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
+    | DevListMsg DevList.Msg
 
 
 
 -- PROGRAM
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
-
-
 main : Program () Model Msg
 main =
-    Browser.element
-        { init = always init
+    Browser.application
+        { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
+        , onUrlRequest = LinkClicked
+        , onUrlChange = UrlChanged
         }
+
+
+init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init _ url key =
+    let
+        ( page, cmd ) =
+            updateUrl url NotFound
+
+        model =
+            { devListPage = Tuple.first DevList.init
+            , page = page
+            , key = key
+            }
+    in
+    ( model
+    , cmd
+    )
 
 
 
@@ -74,16 +83,46 @@ update msg model =
             )
     in
     case msg of
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model
+                    , Navigation.pushUrl model.key (Url.toString url)
+                    )
+
+                Browser.External href ->
+                    ( model
+                    , Navigation.load href
+                    )
+
+        UrlChanged url ->
+            let
+                ( newPage, cmd ) =
+                    updateUrl url model.page
+            in
+            ( { model | page = newPage }
+            , cmd
+            )
+
         DevListMsg subMsg ->
             DevList.update subMsg model.devListPage
                 |> updateWith (\newPage -> { model | devListPage = newPage }) DevListMsg
 
 
 
+-- SUBSCRIPTION
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
+
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
     let
         ( headerTitle, mainSection ) =
@@ -92,19 +131,27 @@ view model =
                     ( Element.map DevListMsg <| DevList.headerTitleView
                     , Element.map DevListMsg <| DevList.mainSectionView model.devListPage
                     )
+
+                NotFound ->
+                    ( text "404", text "NotFound" )
+
+        body =
+            layout
+                [ Font.family mainFontFamily
+                ]
+            <|
+                column
+                    [ height fill
+                    , width fill
+                    ]
+                    [ headerBar
+                    , headerTitle
+                    , mainSection
+                    ]
     in
-    layout
-        [ Font.family mainFontFamily
-        ]
-    <|
-        column
-            [ height fill
-            , width fill
-            ]
-            [ headerBar
-            , headerTitle
-            , mainSection
-            ]
+    { title = "Angolans"
+    , body = [ body ]
+    }
 
 
 headerBar : Element msg
@@ -180,3 +227,36 @@ mainFontFamily =
         , "Apple Color Emoji"
         , "Segoe UI Emoji"
         ]
+
+
+
+-- ROUTING
+
+
+updateUrl : Url.Url -> Page -> ( Page, Cmd Msg )
+updateUrl url page =
+    let
+        parser =
+            oneOf
+                [ route top
+                    ( DeveloperListPage, Cmd.map DevListMsg <| Tuple.second DevList.init )
+                , route (s "developers")
+                    ( DeveloperListPage, Cmd.map DevListMsg <| Tuple.second DevList.init )
+                , route (s "repositories")
+                    ( NotFound, Cmd.none )
+                ]
+
+        result =
+            Parser.parse parser url
+                |> Maybe.withDefault ( NotFound, Cmd.none )
+    in
+    if Tuple.first result == page then
+        Tuple.mapSecond (always Cmd.none) result
+
+    else
+        result
+
+
+route : Parser a b -> a -> Parser (b -> c) c
+route parser handler =
+    Parser.map handler parser
