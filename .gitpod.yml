@@ -1,3 +1,7 @@
 vscode:
   extensions:
     - sbrink.elm@0.25.0:h8iVStxxJZSYYScO6RJfpg==
+    
+ports:
+  - port: 1234
+    onOpen: open-preview
