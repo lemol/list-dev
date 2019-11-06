@@ -164,7 +164,7 @@ emptyListView =
             , Font.bold
             , Font.size 20
             ]
-            [ text "Get to know the open source community from Angola" ]
+            [ text "Get to know the Open Source community from Angola" ]
         , paragraph
             [ Font.center
             , Font.size 14
