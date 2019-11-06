@@ -211,7 +211,7 @@ menuView =
     in
     row
         []
-        [ menuItem "https://github.com/lemol/angolans-on-github-elm" "Source code"
+        [ menuItem "https://github.com/lemol/github-ao-elm" "Source code"
         ]
 
 
