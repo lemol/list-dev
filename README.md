@@ -8,7 +8,7 @@
 ### Feautures
 
 
-- [x] Zero configuration environment with **[Parcel](https://https://parceljs.org/)** bundler
+- [x] 📦 Zero configuration environment with **[Parcel](https://https://parceljs.org/)** bundler
 
 - [x] 💅 **[elm-ui](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest)** - layout with zero css
 
