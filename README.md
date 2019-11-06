@@ -18,6 +18,8 @@
 
 - [ ] JS interop using **Typescript**
 
+- [ ] **Testing**
+
 - [x] Github **Rest** API
 
 - [ ] Github **GraphQL** API
