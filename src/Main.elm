@@ -149,7 +149,7 @@ view model =
                     , mainSection
                     ]
     in
-    { title = "Angolans"
+    { title = "GithubAO"
     , body = [ body ]
     }
 
@@ -162,7 +162,7 @@ headerBar =
                 [ Font.bold
                 , Font.color <| rgb255 255 255 255
                 ]
-                (text "AoG")
+                (text "GithubAO")
 
         leftContent =
             row
