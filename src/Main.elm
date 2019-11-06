@@ -7,6 +7,7 @@ import Element.Background as Background
 import Element.Font as Font
 import Html.Attributes exposing (target)
 import Page.DeveloperList as DevList
+import Page.RepositoryList as RepoList
 import Url
 import Url.Parser as Parser exposing (Parser, map, oneOf, s, top)
 
@@ -18,10 +19,12 @@ import Url.Parser as Parser exposing (Parser, map, oneOf, s, top)
 type Page
     = NotFound
     | DeveloperListPage
+    | RepositoryListPage
 
 
 type alias Model =
     { devListPage : DevList.Model
+    , repoListPage : RepoList.Model
     , page : Page
     , key : Navigation.Key
     }
@@ -35,6 +38,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | DevListMsg DevList.Msg
+    | RepoListMsg RepoList.Msg
 
 
 
@@ -61,12 +65,17 @@ init _ url key =
 
         model =
             { devListPage = Tuple.first DevList.init
+            , repoListPage = Tuple.first RepoList.init
             , page = page
             , key = key
             }
     in
     ( model
-    , cmd
+    , Cmd.batch
+        [ cmd
+        , Cmd.map DevListMsg <| Tuple.second DevList.init
+        , Cmd.map RepoListMsg <| Tuple.second RepoList.init
+        ]
     )
 
 
@@ -108,6 +117,10 @@ update msg model =
             DevList.update subMsg model.devListPage
                 |> updateWith (\newPage -> { model | devListPage = newPage }) DevListMsg
 
+        RepoListMsg subMsg ->
+            RepoList.update subMsg model.repoListPage
+                |> updateWith (\newPage -> { model | repoListPage = newPage }) RepoListMsg
+
 
 
 -- SUBSCRIPTION
@@ -130,6 +143,11 @@ view model =
                 DeveloperListPage ->
                     ( Element.map DevListMsg <| DevList.headerTitleView
                     , Element.map DevListMsg <| DevList.mainSectionView model.devListPage
+                    )
+
+                RepositoryListPage ->
+                    ( Element.map RepoListMsg <| RepoList.headerTitleView
+                    , Element.map RepoListMsg <| RepoList.mainSectionView model.repoListPage
                     )
 
                 NotFound ->
@@ -239,11 +257,11 @@ updateUrl url page =
         parser =
             oneOf
                 [ route top
-                    ( DeveloperListPage, Cmd.map DevListMsg <| Tuple.second DevList.init )
+                    ( DeveloperListPage, Cmd.none )
                 , route (s "developers")
-                    ( DeveloperListPage, Cmd.map DevListMsg <| Tuple.second DevList.init )
+                    ( DeveloperListPage, Cmd.none )
                 , route (s "repositories")
-                    ( NotFound, Cmd.none )
+                    ( RepositoryListPage, Cmd.none )
                 ]
 
         result =
