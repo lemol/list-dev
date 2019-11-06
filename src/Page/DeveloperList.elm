@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
 import Html
-import Html.Attributes exposing (src, style)
+import Html.Attributes exposing (src, style, target)
 import RemoteData exposing (RemoteData(..))
 import Utils.Button exposing (githubTextLink)
 import Utils.SelectMenu as SelectMenu
@@ -345,8 +345,8 @@ developerListItemView count developer =
                 ]
                 (text <| String.fromInt (count + 1))
             , link
-                []
-                { url = "/Users/" ++ developer.login
+                [ htmlAttribute <| target "_blank" ]
+                { url = developer.htmlUrl
                 , label =
                     row
                         [ width fill
