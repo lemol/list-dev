@@ -9,6 +9,7 @@ import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style, target)
 import RemoteData exposing (RemoteData(..))
+import Routing exposing (Route(..), toUrl)
 import Utils.Button exposing (githubTextLink)
 import Utils.SelectMenu as SelectMenu
 
@@ -184,7 +185,7 @@ mainSectionView model =
                             , Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
                             , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
                             ]
-                            { url = "/repositories", label = el [ centerY ] (text "Repositories") }
+                            { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
                         , link
                             [ centerX
                             , centerY
@@ -197,7 +198,7 @@ mainSectionView model =
                             , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
                             , Background.color <| rgb255 3 102 214
                             ]
-                            { url = "/developers", label = el [ centerY ] (text "Developers") }
+                            { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
                         ]
                     , row
                         [ alignRight, spacing 32 ]

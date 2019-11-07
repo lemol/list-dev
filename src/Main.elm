@@ -3,29 +3,20 @@ module Main exposing (main)
 import Browser
 import Browser.Navigation as Navigation
 import Element exposing (..)
-import Element.Background as Background
 import Element.Font as Font
-import Html.Attributes exposing (target)
-import Page.DeveloperList as DevList
-import Page.RepositoryList as RepoList
+import Page
+import Routing exposing (Route, parseUrl)
 import Url
-import Url.Parser as Parser exposing (Parser, map, oneOf, s, top)
+import Url.Parser exposing (map)
 
 
 
 -- MODEL
 
 
-type Page
-    = NotFound
-    | DeveloperListPage
-    | RepositoryListPage
-
-
 type alias Model =
-    { devListPage : DevList.Model
-    , repoListPage : RepoList.Model
-    , page : Page
+    { route : Route
+    , page : Page.Model
     , key : Navigation.Key
     }
 
@@ -37,8 +28,7 @@ type alias Model =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
-    | DevListMsg DevList.Msg
-    | RepoListMsg RepoList.Msg
+    | PageMsg Page.Msg
 
 
 
@@ -58,24 +48,23 @@ main =
 
 
 init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
-init _ url key =
+init flags url key =
     let
-        ( page, cmd ) =
-            updateUrl url NotFound
+        route =
+            parseUrl url
+
+        ( pageModel, pageCmd ) =
+            Page.init flags route
 
         model =
-            { devListPage = Tuple.first DevList.init
-            , repoListPage = Tuple.first RepoList.init
-            , page = page
+            { route = route
+            , page = pageModel
             , key = key
             }
     in
     ( model
     , Cmd.batch
-        [ cmd
-        , Cmd.map DevListMsg <| Tuple.second DevList.init
-        , Cmd.map RepoListMsg <| Tuple.second RepoList.init
-        ]
+        [ Cmd.map PageMsg pageCmd ]
     )
 
 
@@ -85,12 +74,6 @@ init _ url key =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        updateWith toModel toMsg ( subModel, subCmd ) =
-            ( toModel subModel
-            , Cmd.map toMsg subCmd
-            )
-    in
     case msg of
         LinkClicked urlRequest ->
             case urlRequest of
@@ -106,20 +89,28 @@ update msg model =
 
         UrlChanged url ->
             let
-                ( newPage, cmd ) =
-                    updateUrl url model.page
+                route =
+                    parseUrl url
+
+                ( newPageModel, newPageCmd ) =
+                    Page.enterRoute route model.page
             in
-            ( { model | page = newPage }
-            , cmd
+            ( { model
+                | route = route
+                , page = newPageModel
+              }
+            , Cmd.batch
+                [ Cmd.map PageMsg newPageCmd ]
             )
 
-        DevListMsg subMsg ->
-            DevList.update subMsg model.devListPage
-                |> updateWith (\newPage -> { model | devListPage = newPage }) DevListMsg
-
-        RepoListMsg subMsg ->
-            RepoList.update subMsg model.repoListPage
-                |> updateWith (\newPage -> { model | repoListPage = newPage }) RepoListMsg
+        PageMsg subMsg ->
+            let
+                ( newPageModel, newPageCmd ) =
+                    Page.update subMsg model.page
+            in
+            ( { model | page = newPageModel }
+            , Cmd.map PageMsg newPageCmd
+            )
 
 
 
@@ -138,99 +129,18 @@ subscriptions _ =
 view : Model -> Browser.Document Msg
 view model =
     let
-        ( headerTitle, mainSection ) =
-            case model.page of
-                DeveloperListPage ->
-                    ( Element.map DevListMsg <| DevList.headerTitleView
-                    , Element.map DevListMsg <| DevList.mainSectionView model.devListPage
-                    )
-
-                RepositoryListPage ->
-                    ( Element.map RepoListMsg <| RepoList.headerTitleView
-                    , Element.map RepoListMsg <| RepoList.mainSectionView model.repoListPage
-                    )
-
-                NotFound ->
-                    ( text "404", text "NotFound" )
+        page =
+            Page.view model.route model.page
 
         body =
             layout
                 [ Font.family mainFontFamily
                 ]
-            <|
-                column
-                    [ height fill
-                    , width fill
-                    ]
-                    [ headerBar
-                    , headerTitle
-                    , mainSection
-                    ]
+                (Element.map PageMsg page.body)
     in
-    { title = "GithubAO"
+    { title = page.title
     , body = [ body ]
     }
-
-
-headerBar : Element msg
-headerBar =
-    let
-        logo =
-            el
-                [ Font.bold
-                , Font.color <| rgb255 255 255 255
-                ]
-                (text "GithubAO")
-
-        leftContent =
-            row
-                [ spacing 16 ]
-                [ logo
-                , menuView
-                ]
-
-        rightContent =
-            row
-                [ alignRight ]
-                [ text "" ]
-    in
-    el
-        [ width fill
-        , height <| px 64
-        , Background.color <| rgb255 36 41 46
-        ]
-    <|
-        row
-            [ centerY
-            , padding 16
-            , height fill
-            , width fill
-            ]
-            [ leftContent
-            , rightContent
-            ]
-
-
-menuView : Element msg
-menuView =
-    let
-        menuItem url label =
-            link
-                [ Font.size 14
-                , Font.color <| rgb255 0xFF 0xFF 0xFF
-                , Font.bold
-                , htmlAttribute <| target "_blank"
-                , mouseOver
-                    [ Font.color <| rgba255 0xFF 0xFF 0xFF 0.7 ]
-                ]
-                { url = url
-                , label = text label
-                }
-    in
-    row
-        []
-        [ menuItem "https://github.com/lemol/github-ao-elm" "Source code"
-        ]
 
 
 mainFontFamily : List Font.Font
@@ -245,36 +155,3 @@ mainFontFamily =
         , "Apple Color Emoji"
         , "Segoe UI Emoji"
         ]
-
-
-
--- ROUTING
-
-
-updateUrl : Url.Url -> Page -> ( Page, Cmd Msg )
-updateUrl url page =
-    let
-        parser =
-            oneOf
-                [ route top
-                    ( DeveloperListPage, Cmd.none )
-                , route (s "developers")
-                    ( DeveloperListPage, Cmd.none )
-                , route (s "repositories")
-                    ( RepositoryListPage, Cmd.none )
-                ]
-
-        result =
-            Parser.parse parser url
-                |> Maybe.withDefault ( NotFound, Cmd.none )
-    in
-    if Tuple.first result == page then
-        Tuple.mapSecond (always Cmd.none) result
-
-    else
-        result
-
-
-route : Parser a b -> a -> Parser (b -> c) c
-route parser handler =
-    Parser.map handler parser

@@ -12,7 +12,7 @@
 
 - [x] 💅 **[elm-ui](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest)** - layout with zero css
 
-- [ ] 🚆 **Routing**
+- [ ] 🚆 **Navigation**
 
 - [x] 🚀 **Zero configuration deployment** on [ZEIT Now](https://zeit.co/guides/upgrade-to-zero-configuration/). Automated deployment on commit to Github.
 
