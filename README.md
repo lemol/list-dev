@@ -5,7 +5,7 @@
 **[Live demo](https://github-ao-elm.now.sh)**
 
 
-## Feautures
+## Features
 
 
 - [x] 📦 Zero configuration environment with **[Parcel](https://https://parceljs.org/)** bundler
@@ -44,7 +44,7 @@ yarn dev     # then open http://localhost:1234
 Ready to use on [Gitpod](https://www.gitpod.io/).
 
 
-## Acknoledgments
+## Acknowledgments
 
 The idea of listing the developers from Angola is based on the showcase from [@flowck](https://github.com/flowck) on his [https://github.com/flowck/angolan-on-github](https://github.com/flowck/angolan-on-github) repository.
 
