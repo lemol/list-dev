@@ -33,10 +33,10 @@ toUrl : Route -> String
 toUrl route =
     case route of
         NotFoundRoute ->
-            "#/404"
+            "/404"
 
         DevListRoute ->
-            "#/developers"
+            "/developers"
 
         RepoListRoute ->
-            "#/repositories"
+            "/repositories"
