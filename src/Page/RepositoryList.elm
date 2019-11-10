@@ -1,4 +1,4 @@
-module Page.RepositoryList exposing (..)
+module Page.RepositoryList exposing (Model, Msg, init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -6,6 +6,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
 import Html.Attributes exposing (style)
+import Layout
 
 
 
@@ -44,6 +45,15 @@ update msg model =
 
 
 -- VIEW
+
+
+view : Model -> Layout.Document Msg
+view model =
+    Layout.mainView
+        { titleSection = Just headerTitleView
+        , mainSection = Just <| mainSectionView model
+        , title = Nothing
+        }
 
 
 headerTitleView : Element msg

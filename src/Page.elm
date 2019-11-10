@@ -2,9 +2,9 @@ module Page exposing (Model, Msg, enterRoute, init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes exposing (target)
+import Layout
 import Page.DeveloperList as DevList
 import Page.RepositoryList as RepoList
 import Routing exposing (Route(..))
@@ -84,43 +84,33 @@ update msg model =
 -- VIEW
 
 
-type alias Document msg =
-    { title : String
-    , body : Element msg
-    }
-
-
-view : Route -> Model -> Document Msg
+view : Route -> Model -> Layout.Document Msg
 view route model =
-    let
-        ( headerTitle, mainSection ) =
-            case route of
-                DevListRoute ->
-                    ( Element.map DevListMsg <| DevList.headerTitleView
-                    , Element.map DevListMsg <| Maybe.withDefault none <| Maybe.map DevList.mainSectionView model.devList
-                    )
+    case route of
+        DevListRoute ->
+            viewPageOrLoading
+                DevList.view
+                DevListMsg
+                model
+                .devList
 
-                RepoListRoute ->
-                    ( Element.map RepoListMsg <| RepoList.headerTitleView
-                    , Element.map RepoListMsg <| Maybe.withDefault none <| Maybe.map RepoList.mainSectionView model.repoList
-                    )
+        RepoListRoute ->
+            viewPageOrLoading
+                RepoList.view
+                RepoListMsg
+                model
+                .repoList
 
-                NotFoundRoute ->
-                    ( text "404", text "NotFound" )
+        NotFoundRoute ->
+            Layout.notFoundView
 
-        body =
-            column
-                [ height fill
-                , width fill
-                ]
-                [ headerBar
-                , headerTitle
-                , mainSection
-                ]
-    in
-    { title = "GithubAO"
-    , body = body
-    }
+
+viewPageOrLoading : (page -> Layout.Document msg) -> (msg -> Msg) -> Model -> (Model -> Maybe page) -> Layout.Document Msg
+viewPageOrLoading subView toMsg model getPage =
+    getPage model
+        |> Maybe.map subView
+        |> Maybe.map (Layout.map toMsg)
+        |> Maybe.withDefault Layout.loadingView
 
 
 headerBar : Element msg

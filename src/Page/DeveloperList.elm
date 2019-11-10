@@ -1,4 +1,4 @@
-module Page.DeveloperList exposing (..)
+module Page.DeveloperList exposing (view, Model, Msg, init, update)
 
 import Data.Developer exposing (..)
 import Element exposing (..)
@@ -12,6 +12,7 @@ import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..), toUrl)
 import Utils.Button exposing (githubTextLink)
 import Utils.SelectMenu as SelectMenu
+import Layout
 
 
 
@@ -116,9 +117,15 @@ update msg model =
                 model
 
 
-
 -- VIEW
 
+view : Model -> Layout.Document Msg
+view model =
+    Layout.mainView
+        { titleSection = Just headerTitleView
+        , mainSection = Just <| mainSectionView model
+        , title = Nothing
+        }
 
 headerTitleView : Element msg
 headerTitleView =
