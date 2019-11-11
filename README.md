@@ -30,6 +30,8 @@
 
 - [ ] **Mobile** apps
 
+- [ ] **UI Playground** with UI Explorer
+
 
 ## Running
 

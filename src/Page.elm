@@ -1,9 +1,6 @@
 module Page exposing (Model, Msg, enterRoute, init, update, view)
 
 import Element exposing (..)
-import Element.Background as Background
-import Element.Font as Font
-import Html.Attributes exposing (target)
 import Layout
 import Page.DeveloperList as DevList
 import Page.RepositoryList as RepoList
@@ -36,8 +33,7 @@ init _ route =
 
 
 type Msg
-    = NoOp
-    | DevListMsg DevList.Msg
+    = DevListMsg DevList.Msg
     | RepoListMsg RepoList.Msg
 
 
@@ -60,9 +56,6 @@ update msg model =
                 >> Maybe.withDefault ( model, Cmd.none )
     in
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
         DevListMsg subMsg ->
             updatePage
                 DevList.update
@@ -111,67 +104,6 @@ viewPageOrLoading subView toMsg model getPage =
         |> Maybe.map subView
         |> Maybe.map (Layout.map toMsg)
         |> Maybe.withDefault Layout.loadingView
-
-
-headerBar : Element msg
-headerBar =
-    let
-        logo =
-            el
-                [ Font.bold
-                , Font.color <| rgb255 255 255 255
-                ]
-                (text "GithubAO")
-
-        leftContent =
-            row
-                [ spacing 16 ]
-                [ logo
-                , menuView
-                ]
-
-        rightContent =
-            row
-                [ alignRight ]
-                [ text "" ]
-    in
-    el
-        [ width fill
-        , height <| px 64
-        , Background.color <| rgb255 36 41 46
-        ]
-    <|
-        row
-            [ centerY
-            , padding 16
-            , height fill
-            , width fill
-            ]
-            [ leftContent
-            , rightContent
-            ]
-
-
-menuView : Element msg
-menuView =
-    let
-        menuItem url label =
-            link
-                [ Font.size 14
-                , Font.color <| rgb255 0xFF 0xFF 0xFF
-                , Font.bold
-                , htmlAttribute <| target "_blank"
-                , mouseOver
-                    [ Font.color <| rgba255 0xFF 0xFF 0xFF 0.7 ]
-                ]
-                { url = url
-                , label = text label
-                }
-    in
-    row
-        []
-        [ menuItem "https://github.com/lemol/github-ao-elm" "Source code"
-        ]
 
 
 

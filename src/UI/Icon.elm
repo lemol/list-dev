@@ -1,6 +1,5 @@
-module Utils.Icon exposing (checkIcon)
+module UI.Icon exposing (checkIcon)
 
-import Element exposing (Element)
 import Html exposing (Html)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)

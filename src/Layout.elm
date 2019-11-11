@@ -7,19 +7,22 @@ import Html.Attributes exposing (target)
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..))
 
+
+
 -- DATA
+
 
 type alias Document msg =
     { title : String
     , body : Element msg
     }
 
+
 type alias MainViewContent msg =
     { titleSection : Maybe (Element msg)
     , mainSection : Maybe (Element msg)
     , title : Maybe String
     }
-
 
 
 

@@ -1,7 +1,6 @@
-vscode:
-  extensions:
-    - sbrink.elm@0.25.0:h8iVStxxJZSYYScO6RJfpg==
-    
 ports:
   - port: 1234
     onOpen: open-preview
+vscode:
+  extensions:
+    - elmTooling.elm-ls-vscode@0.7.2:HwtXl318PaIRA5nM5MEykA==

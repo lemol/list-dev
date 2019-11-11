@@ -1,6 +1,6 @@
-module Utils.SelectMenu exposing (Msg(..), State, UpdaterConfig, init, update, updateState, view)
+module UI.SelectMenu exposing (Msg(..), State, UpdaterConfig, init, update, updateState, view)
 
-import Element exposing (Attribute, Element, below, centerY, column, el, fill, focused, height, html, htmlAttribute, inFront, mapAttribute, maximum, mouseOver, padding, paddingEach, pointer, px, rgb255, rgba255, row, scrollbarY, spacing, text, width)
+import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
@@ -10,7 +10,7 @@ import Html.Attributes
 import Html.Events
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..))
-import Utils.Icon exposing (checkIcon)
+import UI.Icon exposing (checkIcon)
 
 
 

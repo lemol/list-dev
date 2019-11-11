@@ -1,12 +1,12 @@
-module Page.RepositoryList exposing (Model, Msg, init, update, view)
+module Page.RepositoryList exposing (Model, Msg(..), init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
-import Html.Attributes exposing (style)
 import Layout
+import UI.Areas as Areas
 
 
 
@@ -50,112 +50,63 @@ update msg model =
 view : Model -> Layout.Document Msg
 view model =
     Layout.mainView
-        { titleSection = Just headerTitleView
+        { titleSection = Just headerView
         , mainSection = Just <| mainSectionView model
         , title = Nothing
         }
 
 
-headerTitleView : Element msg
-headerTitleView =
-    el
-        [ width fill
-        , height <| px 174
-        , Background.color <| rgb255 250 251 252
-        , Border.color <| rgb255 225 228 232
-        , Border.widthXY 0 1
-        ]
-    <|
-        column
-            [ centerX
-            , centerY
-            ]
-            [ el
-                [ centerX
-                , padding 12
-                , Font.size 40
-                , Font.color <| rgb255 6 41 46
-                , htmlAttribute <|
-                    style "font-weight" "300"
-                ]
-                (text "Repositories")
-            , el
-                [ centerX
-                , Font.size 16
-                , Font.color <| rgb255 88 96 105
-                ]
-                (text "See what the GitHub community from Angola is most excited about.")
-            ]
+headerView : Element msg
+headerView =
+    Areas.headerView
+        { title = "Repositories"
+        , subTitle = Just "See what the GitHub community from Angola is most excited about."
+        }
 
 
 mainSectionView : Model -> Element Msg
 mainSectionView _ =
     let
-        top =
-            el
-                [ width fill
-                , height <| px 64
-                , Background.color <| rgb255 246 248 250
-                , Border.color <| rgb255 209 213 218
-                , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+        header =
+            row
+                [ height <| px 34
+                , Font.size 14
+                , Font.semiBold
                 ]
-            <|
-                row
-                    [ centerY
+                [ link
+                    [ centerX
+                    , centerY
+                    , height fill
                     , width fill
-                    , padding 16
+                    , paddingXY 14 6
+                    , Font.color <| rgb255 255 255 255
+                    , Border.color <| rgb255 225 228 232
+                    , Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
+                    , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
+                    , Background.color <| rgb255 3 102 214
                     ]
-                    [ row
-                        [ height <| px 34
-                        , Font.size 14
-                        , Font.semiBold
-                        ]
-                        [ link
-                            [ centerX
-                            , centerY
-                            , height fill
-                            , width fill
-                            , paddingXY 14 6
-                            , Font.color <| rgb255 255 255 255
-                            , Border.color <| rgb255 225 228 232
-                            , Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
-                            , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
-                            , Background.color <| rgb255 3 102 214
-                            ]
-                            { url = "/repositories", label = el [ centerY ] (text "Repositories") }
-                        , link
-                            [ centerX
-                            , centerY
-                            , height fill
-                            , width fill
-                            , paddingXY 14 6
-                            , Font.color <| rgb255 88 96 105
-                            , Border.color <| rgb255 225 228 232
-                            , Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
-                            , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
-                            ]
-                            { url = "/developers", label = el [ centerY ] (text "Developers") }
-                        ]
+                    { url = "/repositories", label = el [ centerY ] (text "Repositories") }
+                , link
+                    [ centerX
+                    , centerY
+                    , height fill
+                    , width fill
+                    , paddingXY 14 6
+                    , Font.color <| rgb255 88 96 105
+                    , Border.color <| rgb255 225 228 232
+                    , Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
+                    , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
                     ]
+                    { url = "/developers", label = el [ centerY ] (text "Developers") }
+                ]
 
         body =
             emptyListView
     in
-    el
-        [ width fill
-        , paddingXY 42 40
-        ]
-    <|
-        column
-            [ centerX
-            , width (fill |> maximum 1012)
-            , Border.color <| rgb255 209 213 218
-            , Border.width 1
-            , Border.rounded 3
-            ]
-            [ top
-            , body
-            ]
+    Areas.boxView
+        { header = header
+        , body = body
+        }
 
 
 emptyListView : Element msg

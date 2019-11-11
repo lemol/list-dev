@@ -1,4 +1,4 @@
-module Page.DeveloperList exposing (view, Model, Msg, init, update)
+module Page.DeveloperList exposing (Model, Msg, init, update, view)
 
 import Data.Developer exposing (..)
 import Element exposing (..)
@@ -8,11 +8,12 @@ import Element.Font as Font
 import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style, target)
+import Layout
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..), toUrl)
-import Utils.Button exposing (githubTextLink)
-import Utils.SelectMenu as SelectMenu
-import Layout
+import UI.Areas as Areas
+import UI.Button exposing (githubTextLink)
+import UI.SelectMenu as SelectMenu
 
 
 
@@ -117,122 +118,90 @@ update msg model =
                 model
 
 
+
 -- VIEW
+
 
 view : Model -> Layout.Document Msg
 view model =
     Layout.mainView
-        { titleSection = Just headerTitleView
+        { titleSection = Just headerView
         , mainSection = Just <| mainSectionView model
         , title = Nothing
         }
 
-headerTitleView : Element msg
-headerTitleView =
-    el
-        [ width fill
-        , height <| px 174
-        , Background.color <| rgb255 250 251 252
-        , Border.color <| rgb255 225 228 232
-        , Border.widthXY 0 1
-        ]
-    <|
-        column
-            [ centerX
-            , centerY
-            ]
-            [ el
-                [ centerX
-                , padding 12
-                , Font.size 40
-                , Font.color <| rgb255 6 41 46
-                , htmlAttribute <|
-                    style "font-weight" "300"
-                ]
-                (text "Developers from Angola")
-            , el
-                [ centerX
-                , Font.size 16
-                , Font.color <| rgb255 88 96 105
-                ]
-                (text "These are the developers based in Angola building the hot tools on Github.")
-            ]
+
+headerView : Element msg
+headerView =
+    Areas.headerView
+        { title = "Developers from Angola"
+        , subTitle = Just "These are the developers based in Angola building the hot tools on Github."
+        }
 
 
 mainSectionView : Model -> Element Msg
 mainSectionView model =
     let
-        top =
-            el
-                [ width fill
-                , height <| px 64
-                , Background.color <| rgb255 246 248 250
-                , Border.color <| rgb255 209 213 218
-                , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+        header =
+            row
+                [ centerY, width fill ]
+                [ row
+                    [ height <| px 34
+                    , Font.size 14
+                    , Font.semiBold
+                    ]
+                    [ link
+                        [ centerX
+                        , centerY
+                        , height fill
+                        , width fill
+                        , paddingXY 14 6
+                        , Font.color <| rgb255 88 96 105
+                        , Border.color <| rgb255 225 228 232
+                        , Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
+                        , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
+                        ]
+                        { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
+                    , link
+                        [ centerX
+                        , centerY
+                        , height fill
+                        , width fill
+                        , paddingXY 14 6
+                        , Font.color <| rgb255 255 255 255
+                        , Border.color <| rgb255 225 228 232
+                        , Background.color <| rgb255 3 102 214
+                        , Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
+                        , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
+                        ]
+                        { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
+                    ]
+                , row
+                    [ alignRight, spacing 32 ]
+                    [ SelectMenu.view
+                        []
+                        { title = "Language:"
+                        , description = "Select a language"
+                        , defaultText = "Any"
+                        , options = languageValues model.languages
+                        , toString = languageToString
+                        , showFilter = True
+                        , model = model.languageSelectMenu
+                        , toMsg = LanguageSelectMsg
+                        }
+                    , SelectMenu.view
+                        []
+                        { title = "Sort:"
+                        , description = "Sort options"
+                        , defaultText = "Select"
+                        , options = sortValues
+                        , toString = sortToString
+                        , showFilter = False
+                        , model = model.sortSelectMenu
+                        , toMsg = SortSelectMsg
+                        }
+                    ]
                 ]
-            <|
-                row
-                    [ centerY
-                    , width fill
-                    , padding 16
-                    ]
-                    [ row
-                        [ height <| px 34
-                        , Font.size 14
-                        , Font.semiBold
-                        ]
-                        [ link
-                            [ centerX
-                            , centerY
-                            , height fill
-                            , width fill
-                            , paddingXY 14 6
-                            , Font.color <| rgb255 88 96 105
-                            , Border.color <| rgb255 225 228 232
-                            , Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
-                            , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
-                            ]
-                            { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
-                        , link
-                            [ centerX
-                            , centerY
-                            , height fill
-                            , width fill
-                            , paddingXY 14 6
-                            , Font.color <| rgb255 255 255 255
-                            , Border.color <| rgb255 225 228 232
-                            , Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
-                            , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
-                            , Background.color <| rgb255 3 102 214
-                            ]
-                            { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
-                        ]
-                    , row
-                        [ alignRight, spacing 32 ]
-                        [ SelectMenu.view
-                            []
-                            { title = "Language:"
-                            , description = "Select a language"
-                            , defaultText = "Any"
-                            , options = languageValues model.languages
-                            , toString = languageToString
-                            , showFilter = True
-                            , model = model.languageSelectMenu
-                            , toMsg = LanguageSelectMsg
-                            }
-                        , SelectMenu.view
-                            []
-                            { title = "Sort:"
-                            , description = "Sort options"
-                            , defaultText = "Select"
-                            , options = sortValues
-                            , toString = sortToString
-                            , showFilter = False
-                            , model = model.sortSelectMenu
-                            , toMsg = SortSelectMsg
-                            }
-                        ]
-                    ]
 
         body =
             case model.developers of
@@ -251,21 +220,10 @@ mainSectionView model =
                 NotAsked ->
                     none
     in
-    el
-        [ width fill
-        , paddingXY 42 40
-        ]
-    <|
-        column
-            [ centerX
-            , width (fill |> maximum 1012)
-            , Border.color <| rgb255 209 213 218
-            , Border.width 1
-            , Border.rounded 3
-            ]
-            [ top
-            , body
-            ]
+    Areas.boxView
+        { header = header
+        , body = body
+        }
 
 
 emptyListView : Maybe Language -> Element msg

@@ -1,4 +1,4 @@
-module Utils.Button exposing (githubTextButton, githubTextLink)
+module UI.Button exposing (githubTextButton, githubTextLink)
 
 import Element exposing (Element, centerY, el, focused, height, link, mouseOver, paddingXY, px, rgb255, rgba255, text)
 import Element.Background as Background
