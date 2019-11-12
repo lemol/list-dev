@@ -1,9 +1,9 @@
 module Page exposing (Model, Msg, enterRoute, init, update, view)
 
 import Element exposing (..)
-import Layout
-import Page.DeveloperList as DevList
-import Page.RepositoryList as RepoList
+import Layout.Main as Layout
+import Pages.DeveloperList as DevList
+import Pages.RepositoryList as RepoList
 import Routing exposing (Route(..))
 
 

@@ -1,17 +1,15 @@
-module Page.DeveloperList exposing (Model, Msg, init, update, view)
+module Pages.DeveloperList exposing (Model, Msg, init, update, view)
 
 import Data.Developer exposing (..)
 import Element exposing (..)
-import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style, target)
-import Layout
+import Layout.Main exposing (Document)
+import Layout.Trending as Layout
 import RemoteData exposing (RemoteData(..))
-import Routing exposing (Route(..), toUrl)
-import UI.Areas as Areas
 import UI.Button exposing (githubTextLink)
 import UI.SelectMenu as SelectMenu
 
@@ -122,108 +120,63 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Layout.Document Msg
+view : Model -> Document Msg
 view model =
-    Layout.mainView
-        { titleSection = Just headerView
-        , mainSection = Just <| mainSectionView model
-        , title = Nothing
+    Layout.view
+        { title = "Developers"
+        , subTitle = "These are the developers based in Angola building the hot tools on Github."
+        , page = Layout.Developers
+        , filter = Just <| filterView model
+        , body = body model
         }
 
 
-headerView : Element msg
-headerView =
-    Areas.headerView
-        { title = "Developers from Angola"
-        , subTitle = Just "These are the developers based in Angola building the hot tools on Github."
-        }
+filterView : Model -> Element Msg
+filterView model =
+    row
+        [ alignRight, spacing 32 ]
+        [ SelectMenu.view
+            []
+            { title = "Language:"
+            , description = "Select a language"
+            , defaultText = "Any"
+            , options = languageValues model.languages
+            , toString = languageToString
+            , showFilter = True
+            , model = model.languageSelectMenu
+            , toMsg = LanguageSelectMsg
+            }
+        , SelectMenu.view
+            []
+            { title = "Sort:"
+            , description = "Sort options"
+            , defaultText = "Select"
+            , options = sortValues
+            , toString = sortToString
+            , showFilter = False
+            , model = model.sortSelectMenu
+            , toMsg = SortSelectMsg
+            }
+        ]
 
 
-mainSectionView : Model -> Element Msg
-mainSectionView model =
-    let
-        header =
-            row
-                [ centerY, width fill ]
-                [ row
-                    [ height <| px 34
-                    , Font.size 14
-                    , Font.semiBold
-                    ]
-                    [ link
-                        [ centerX
-                        , centerY
-                        , height fill
-                        , width fill
-                        , paddingXY 14 6
-                        , Font.color <| rgb255 88 96 105
-                        , Border.color <| rgb255 225 228 232
-                        , Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
-                        , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
-                        ]
-                        { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
-                    , link
-                        [ centerX
-                        , centerY
-                        , height fill
-                        , width fill
-                        , paddingXY 14 6
-                        , Font.color <| rgb255 255 255 255
-                        , Border.color <| rgb255 225 228 232
-                        , Background.color <| rgb255 3 102 214
-                        , Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
-                        , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
-                        ]
-                        { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
-                    ]
-                , row
-                    [ alignRight, spacing 32 ]
-                    [ SelectMenu.view
-                        []
-                        { title = "Language:"
-                        , description = "Select a language"
-                        , defaultText = "Any"
-                        , options = languageValues model.languages
-                        , toString = languageToString
-                        , showFilter = True
-                        , model = model.languageSelectMenu
-                        , toMsg = LanguageSelectMsg
-                        }
-                    , SelectMenu.view
-                        []
-                        { title = "Sort:"
-                        , description = "Sort options"
-                        , defaultText = "Select"
-                        , options = sortValues
-                        , toString = sortToString
-                        , showFilter = False
-                        , model = model.sortSelectMenu
-                        , toMsg = SortSelectMsg
-                        }
-                    ]
-                ]
+body : Model -> Element Msg
+body model =
+    case model.developers of
+        Success [] ->
+            emptyListView model.language
 
-        body =
-            case model.developers of
-                Success [] ->
-                    emptyListView model.language
+        Success developers ->
+            developerListView developers
 
-                Success developers ->
-                    developerListView developers
+        Failure _ ->
+            text "Something is wrong :("
 
-                Failure _ ->
-                    text "Something is wrong :("
+        Loading ->
+            text "Loading..."
 
-                Loading ->
-                    text "Loading..."
-
-                NotAsked ->
-                    none
-    in
-    Areas.boxView
-        { header = header
-        , body = body
-        }
+        NotAsked ->
+            none
 
 
 emptyListView : Maybe Language -> Element msg

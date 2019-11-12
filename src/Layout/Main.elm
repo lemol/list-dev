@@ -1,4 +1,4 @@
-module Layout exposing (Document, loadingView, mainView, map, notFoundView)
+module Layout.Main exposing (Document, loadingView, mainView, map, notFoundView)
 
 import Element exposing (..)
 import Element.Background as Background
