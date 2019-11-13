@@ -5,15 +5,24 @@ import Layout.Main as Layout
 import Pages.DeveloperList as DevList
 import Pages.RepositoryList as RepoList
 import Routing exposing (Route(..))
+import Utils.Layout exposing (Document, PageConfig, mapDocument)
 
 
 
 -- MODEL
 
 
+devListPage : PageConfig DevList.Msg DevList.Model (Layout.ViewData DevList.Msg) (Layout.LayoutConfig DevList.Msg DevList.Model)
+devListPage =
+    { layout = Layout.config
+    , update = DevList.update
+    , view = DevList.view
+    }
+
+
 type alias Model =
-    { devList : Maybe DevList.Model
-    , repoList : Maybe RepoList.Model
+    { devList : Maybe (Layout.Model DevList.Model)
+    , repoList : Maybe (Layout.Model RepoList.Model)
     }
 
 
@@ -33,8 +42,8 @@ init _ route =
 
 
 type Msg
-    = DevListMsg DevList.Msg
-    | RepoListMsg RepoList.Msg
+    = DevListMsg (Layout.Msg DevList.Msg)
+    | RepoListMsg (Layout.Msg RepoList.Msg)
 
 
 
@@ -58,7 +67,7 @@ update msg model =
     case msg of
         DevListMsg subMsg ->
             updatePage
-                DevList.update
+                (Layout.update DevList.update)
                 subMsg
                 (\newPage -> { model | devList = Just newPage })
                 DevListMsg
@@ -66,7 +75,7 @@ update msg model =
 
         RepoListMsg subMsg ->
             updatePage
-                RepoList.update
+                (Layout.update RepoList.update)
                 subMsg
                 (\newPage -> { model | repoList = Just newPage })
                 RepoListMsg
@@ -77,19 +86,19 @@ update msg model =
 -- VIEW
 
 
-view : Route -> Model -> Layout.Document Msg
+view : Route -> Model -> Document Msg
 view route model =
     case route of
         DevListRoute ->
             viewPageOrLoading
-                DevList.view
+                (Layout.view DevList.view)
                 DevListMsg
                 model
                 .devList
 
         RepoListRoute ->
             viewPageOrLoading
-                RepoList.view
+                (Layout.view RepoList.view)
                 RepoListMsg
                 model
                 .repoList
@@ -98,12 +107,12 @@ view route model =
             Layout.notFoundView
 
 
-viewPageOrLoading : (page -> Layout.Document msg) -> (msg -> Msg) -> Model -> (Model -> Maybe page) -> Layout.Document Msg
+viewPageOrLoading : (page -> Document msg) -> (msg -> Msg) -> Model -> (Model -> Maybe page) -> Document Msg
 viewPageOrLoading subView toMsg model getPage =
     getPage model
         |> Maybe.map subView
-        |> Maybe.map (Layout.map toMsg)
-        |> Maybe.withDefault Layout.loadingView
+        |> Maybe.map (mapDocument toMsg)
+        |> Maybe.withDefault (Layout.view (always Layout.loadingView))
 
 
 

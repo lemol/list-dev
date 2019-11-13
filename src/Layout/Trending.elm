@@ -1,129 +1,144 @@
-module Layout.Trending exposing (TrendingPage(..), TrendingPageConfig, view)
+module Layout.Trending exposing (foo)
 
-import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import Layout.Main as Main
-import RemoteData exposing (RemoteData(..))
-import Routing exposing (Route(..), toUrl)
-import UI.Areas as Areas
+
+foo : Int
+foo =
+    1
 
 
 
--- DATA
-
-
-type TrendingPage
-    = Repositories
-    | Developers
-
-
-type alias TrendingPageConfig msg =
-    { title : String
-    , subTitle : String
-    , page : TrendingPage
-    , filter : Maybe (Element msg)
-    , body : Element msg
-    }
-
-
-
--- VIEWS
-
-
-view : TrendingPageConfig msg -> Main.Document msg
-view config =
-    Main.mainView
-        { titleSection = Just <| headerView config
-        , mainSection = Just <| mainSectionView config
-        , title = Just <| "Trending " ++ config.title ++ " from Angola"
-        }
-
-
-headerView : TrendingPageConfig msg -> Element msg
-headerView { title, subTitle } =
-    Areas.headerView
-        { title = title
-        , subTitle = Just subTitle
-        }
-
-
-mainSectionView : TrendingPageConfig msg -> Element msg
-mainSectionView config =
-    let
-        header =
-            row
-                [ centerY, width fill ]
-                [ navigationButtons config
-                , Maybe.withDefault none config.filter
-                ]
-
-        body =
-            config.body
-    in
-    Areas.boxView
-        { header = header
-        , body = body
-        }
-
-
-navigationButtons : TrendingPageConfig msg -> Element msg
-navigationButtons config =
-    let
-        repoAttrs =
-            case config.page of
-                Repositories ->
-                    [ Font.color <| rgb255 255 255 255
-                    , Border.color <| rgb255 225 228 232
-                    , Background.color <| rgb255 3 102 214
-                    ]
-
-                _ ->
-                    [ Font.color <| rgb255 88 96 105
-                    , Border.color <| rgb255 225 228 232
-                    ]
-
-        devAttrs =
-            case config.page of
-                Developers ->
-                    [ Font.color <| rgb255 255 255 255
-                    , Border.color <| rgb255 225 228 232
-                    , Background.color <| rgb255 3 102 214
-                    ]
-
-                _ ->
-                    [ Font.color <| rgb255 88 96 105
-                    , Border.color <| rgb255 225 228 232
-                    ]
-
-        buttonAttrs =
-            [ centerX
-            , centerY
-            , height fill
-            , width fill
-            , paddingXY 14 6
-            ]
-    in
-    row
-        [ height <| px 34
-        , Font.size 14
-        , Font.semiBold
-        ]
-        [ link
-            ([ Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
-             , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
-             ]
-                ++ repoAttrs
-                ++ buttonAttrs
-            )
-            { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
-        , link
-            ([ Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
-             , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
-             ]
-                ++ devAttrs
-                ++ buttonAttrs
-            )
-            { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
-        ]
+-- module Layout.Trending exposing (Model, Msg, TrendingPage(..), ViewData, update, view)
+-- import Element exposing (..)
+-- import Element.Background as Background
+-- import Element.Border as Border
+-- import Element.Font as Font
+-- import Utils.Layout as Layout exposing (Document)
+-- import Layout.Main as Main
+-- import RemoteData exposing (RemoteData(..))
+-- import Routing exposing (Route(..), toUrl)
+-- import UI.Areas as Areas
+-- -- DATA
+-- type TrendingPage
+--     = Repositories
+--     | Developers
+-- type alias ViewData msg =
+--     { title : String
+--     , subTitle : String
+--     , page : TrendingPage
+--     , filter : Maybe (Element msg)
+--     , body : Element msg
+--     }
+-- -- MODEL
+-- type alias GlobalModel =
+--     {}
+-- type alias Model pageModel =
+--     Layout.Model GlobalModel pageModel
+-- -- MESSAGE
+-- type alias GlobalMsg
+--     = Never
+-- type alias Msg pageMsg =
+--     Layout.Msg GlobalMsg pageMsg
+-- -- UPDATE
+-- update : (pageMsg -> pageModel -> ( pageModel, Cmd pageMsg )) -> Msg pageMsg -> Model pageModel -> ( Model pageModel, Cmd (Msg pageMsg) )
+-- update pageUpdate msg model =
+--     case msg of
+--         PageMsg pageMsg ->
+--             mapUpdate model <| pageUpdate pageMsg model.pageModel
+-- mapUpdate : Model pageModel -> ( pageModel, Cmd pageMsg ) -> ( Model pageModel, Cmd (Msg pageMsg) )
+-- mapUpdate model ( pageModel, pageMsg ) =
+--     ( { model | pageModel = pageModel }
+--     , Cmd.map PageMsg pageMsg
+--     )
+-- update : (pageMsg -> pageModel -> ( pageModel, Cmd pageMsg )) -> Msg pageMsg -> Model pageModel -> ( Model pageModel, Cmd (Msg pageMsg) )
+-- update pageUpdate =
+--     Layout.update globalUpdate pageUpdate
+-- globalUpdate : GlobalMsg -> GlobalModel -> ( GlobalModel, Cmd GlobalMsg )
+-- globalUpdate msg model =
+--             ( model, Cmd.none )
+-- -- VIEWS
+-- view : ViewData msg -> Document Msg
+-- view toMsg config =
+--     Main.mainView
+--         { titleSection = Just <| headerView config
+--         , mainSection = Just <| mainSectionView config
+--         , title = Just <| "Trending " ++ config.title ++ " from Angola"
+--         }
+--         |> mapDocument
+-- headerView : ViewData msg -> Element msg
+-- headerView { title, subTitle } =
+--     Areas.headerView
+--         { title = title
+--         , subTitle = Just subTitle
+--         }
+-- mainSectionView : ViewData msg -> Element msg
+-- mainSectionView config =
+--     let
+--         header =
+--             row
+--                 [ centerY, width fill ]
+--                 [ navigationButtons config
+--                 , Maybe.withDefault none config.filter
+--                 ]
+--         body =
+--             config.body
+--     in
+--     Areas.boxView
+--         { header = header
+--         , body = body
+--         }
+-- ViewData
+-- navigationButtons : ViewData msg -> Element msg
+-- navigationButtons config =
+--     let
+--         repoAttrs =
+--             case config.page of
+--                 Repositories ->
+--                     [ Font.color <| rgb255 255 255 255
+--                     , Border.color <| rgb255 225 228 232
+--                     , Background.color <| rgb255 3 102 214
+--                     ]
+--                 _ ->
+--                     [ Font.color <| rgb255 88 96 105
+--                     , Border.color <| rgb255 225 228 232
+--                     ]
+--         devAttrs =
+--             case config.page of
+--                 Developers ->
+--                     [ Font.color <| rgb255 255 255 255
+--                     , Border.color <| rgb255 225 228 232
+--                     , Background.color <| rgb255 3 102 214
+--                     ]
+--                 _ ->
+--                     [ Font.color <| rgb255 88 96 105
+--                     , Border.color <| rgb255 225 228 232
+--                     ]
+--         buttonAttrs =
+--             [ centerX
+--             , centerY
+--             , height fill
+--             , width fill
+--             , paddingXY 14 6
+--             ]
+--     in
+--     row
+--         [ height <| px 34
+--         , Font.size 14
+--         , Font.semiBold
+--         ]
+--         [ link
+--             ([ Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
+--              , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
+--              ]
+--                 ++ repoAttrs
+--                 ++ buttonAttrs
+--             )
+--             { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
+--         , link
+--             ([ Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
+--              , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
+--              ]
+--                 ++ devAttrs
+--                 ++ buttonAttrs
+--             )
+--             { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
+--         ]

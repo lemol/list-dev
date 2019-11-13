@@ -3,11 +3,12 @@ module Pages.RepositoryList exposing (Model, Msg(..), init, update, view)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Region as Region
-import Layout.Main exposing (Document)
-import Layout.Trending as Layout
+import Layout.Main as Layout
 
 
 
+-- exposing (Document)
+-- import Layout.Trending as Layout
 -- MODEL
 
 
@@ -45,15 +46,24 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Document Msg
-view _ =
-    Layout.view
-        { title = "Repositories"
-        , subTitle = "See what the GitHub community from Angola is most excited about."
-        , page = Layout.Repositories
-        , filter = Nothing
-        , body = body
-        }
+view : Model -> Layout.ViewData Msg
+view model =
+    { title = Just "Repositories"
+    , titleSection = Nothing
+    , mainSection = Just <| body
+    }
+
+
+
+-- view : Model -> Document Msg
+-- view _ =
+--     Layout.view
+--         { title = "Repositories"
+--         , subTitle = "See what the GitHub community from Angola is most excited about."
+--         , page = Layout.Repositories
+--         , filter = Nothing
+--         , body = body
+--         }
 
 
 body : Element msg

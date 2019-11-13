@@ -1,36 +1,89 @@
-module Layout.Main exposing (Document, loadingView, mainView, map, notFoundView)
+module Layout.Main exposing (LayoutConfig, Model, Msg, ViewData, config, loadingView, notFoundView, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
+import Element.Input as Input
 import Html.Attributes exposing (target)
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..))
+import Utils.Layout as Layout exposing (Document)
 
 
 
 -- DATA
 
 
-type alias Document msg =
-    { title : String
-    , body : Element msg
-    }
-
-
-type alias MainViewContent msg =
+type alias ViewData msg =
     { titleSection : Maybe (Element msg)
     , mainSection : Maybe (Element msg)
     , title : Maybe String
     }
 
 
+type alias LayoutConfig pageMsg pageModel =
+    Layout.LayoutConfig (Msg pageMsg) (Model pageModel) pageMsg pageModel (ViewData pageMsg)
 
--- VIEWS
+
+config : LayoutConfig pageMsg pageModel
+config =
+    { notFound = notFoundView
+    , loading = loadingView
+    , update = update
+    }
 
 
-mainView : MainViewContent msg -> Document msg
-mainView content =
+
+-- MODEL
+
+
+type alias GlobalModel =
+    {}
+
+
+type alias Model pageModel =
+    Layout.Model GlobalModel pageModel
+
+
+
+-- MESSAGE
+
+
+type GlobalMsg
+    = Login
+
+
+type alias Msg pageMsg =
+    Layout.Msg GlobalMsg pageMsg
+
+
+
+-- UPDATE
+
+
+update : (pageMsg -> pageModel -> ( pageModel, Cmd pageMsg )) -> Msg pageMsg -> Model pageModel -> ( Model pageModel, Cmd (Msg pageMsg) )
+update pageUpdate =
+    Layout.update globalUpdate pageUpdate
+
+
+globalUpdate : GlobalMsg -> GlobalModel -> ( GlobalModel, Cmd GlobalMsg )
+globalUpdate msg model =
+    case msg of
+        Login ->
+            ( model, Cmd.none )
+
+
+
+-- VIEW
+
+
+view : (pageModel -> ViewData pageMsg) -> Model pageModel -> Document (Msg pageMsg)
+view =
+    Layout.view globalView
+
+
+globalView : ViewData pageMsg -> Model pageModel -> Document (Msg pageMsg)
+globalView content _ =
     let
         title =
             Maybe.withDefault "GithubAO" content.title
@@ -41,8 +94,8 @@ mainView content =
                 , width fill
                 ]
                 [ headerView
-                , Maybe.withDefault none content.titleSection
-                , Maybe.withDefault none content.mainSection
+                , Element.map Layout.PageMsg <| Maybe.withDefault none content.titleSection
+                , Element.map Layout.PageMsg <| Maybe.withDefault none content.mainSection
                 ]
     in
     { title = title
@@ -50,32 +103,23 @@ mainView content =
     }
 
 
-notFoundView : Document msg
+notFoundView : ViewData msg
 notFoundView =
-    mainView
-        { title = Just "404"
-        , titleSection = Nothing
-        , mainSection = Just (text "Not Found")
-        }
-
-
-loadingView : Document msg
-loadingView =
-    mainView
-        { title = Nothing
-        , titleSection = Nothing
-        , mainSection = Just (text "Loading...")
-        }
-
-
-map : (msg1 -> msg2) -> Document msg1 -> Document msg2
-map f x =
-    { title = x.title
-    , body = Element.map f x.body
+    { title = Just "404"
+    , titleSection = Nothing
+    , mainSection = Just (text "Not Found")
     }
 
 
-headerView : Element msg
+loadingView : ViewData msg
+loadingView =
+    { title = Nothing
+    , titleSection = Nothing
+    , mainSection = Just (text "Loading...")
+    }
+
+
+headerView : Element (Msg pageMsg)
 headerView =
     let
         logo =
@@ -95,7 +139,7 @@ headerView =
         rightContent =
             row
                 [ alignRight ]
-                [ text "" ]
+                [ loginButton ]
     in
     el
         [ width fill
@@ -134,3 +178,12 @@ menuView =
         []
         [ menuItem "https://github.com/lemol/github-ao-elm" "Source code"
         ]
+
+
+loginButton : Element (Msg pageMsg)
+loginButton =
+    Input.button
+        []
+        { onPress = Just <| Layout.GlobalMsg Login
+        , label = text "Sign in"
+        }
