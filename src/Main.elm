@@ -15,8 +15,7 @@ import Url.Parser exposing (map)
 
 
 type alias Model =
-    { route : Route
-    , page : Page.Model
+    { page : Page.Model
     , key : Navigation.Key
     }
 
@@ -57,8 +56,7 @@ init flags url key =
             Page.init flags route
 
         model =
-            { route = route
-            , page = pageModel
+            { page = pageModel
             , key = key
             }
     in
@@ -95,10 +93,7 @@ update msg model =
                 ( newPageModel, newPageCmd ) =
                     Page.enterRoute route model.page
             in
-            ( { model
-                | route = route
-                , page = newPageModel
-              }
+            ( { model | page = newPageModel }
             , Cmd.batch
                 [ Cmd.map PageMsg newPageCmd ]
             )
@@ -130,7 +125,7 @@ view : Model -> Browser.Document Msg
 view model =
     let
         page =
-            Page.view model.route model.page
+            Page.view model.page
 
         body =
             layout

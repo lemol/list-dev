@@ -1,5 +1,7 @@
 module Pages.DeveloperList exposing (Model, Msg, init, update, view)
 
+-- import Layout.Trending as Layout
+
 import Data.Developer exposing (..)
 import Element exposing (..)
 import Element.Border as Border
@@ -7,8 +9,7 @@ import Element.Font as Font
 import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style, target)
-import Layout.Main exposing (Document)
-import Layout.Trending as Layout
+import Layout.Main exposing (ViewData)
 import RemoteData exposing (RemoteData(..))
 import UI.Button exposing (githubTextLink)
 import UI.SelectMenu as SelectMenu
@@ -120,15 +121,24 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> ViewData Msg
 view model =
-    Layout.view
-        { title = "Developers"
-        , subTitle = "These are the developers based in Angola building the hot tools on Github."
-        , page = Layout.Developers
-        , filter = Just <| filterView model
-        , body = body model
-        }
+    { titleSection = Nothing
+    , mainSection = Just <| body model
+    , title = Just "Developers"
+    }
+
+
+
+-- view : Model -> Document Msg
+-- view model =
+--     Layout.view
+--         { title = "Developers"
+--         , subTitle = "These are the developers based in Angola building the hot tools on Github."
+--         , page = Layout.Developers
+--         , filter = Just <| filterView model
+--         , body = body model
+--         }
 
 
 filterView : Model -> Element Msg

@@ -1,4 +1,4 @@
-module Layout.Main exposing (Document, loadingView, mainView, map, notFoundView)
+module Layout.Main exposing (LayoutConfig, Model, Msg, PageConfig, ViewData, config, init, map, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -6,34 +6,101 @@ import Element.Font as Font
 import Html.Attributes exposing (target)
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..))
+import Utils.Base as Base exposing (Document, mapDocument)
 
 
 
 -- DATA
 
 
-type alias Document msg =
-    { title : String
-    , body : Element msg
-    }
-
-
-type alias MainViewContent msg =
-    { titleSection : Maybe (Element msg)
-    , mainSection : Maybe (Element msg)
+type alias ViewData pageMsg =
+    { titleSection : Maybe (Element pageMsg)
+    , mainSection : Maybe (Element pageMsg)
     , title : Maybe String
     }
+
+
+type alias LayoutConfig pageMsg pageModel msg model =
+    Base.LayoutConfig (ViewData pageMsg) Msg Model pageModel msg model
+
+
+type alias PageConfig pageMsg pageModel msg model =
+    Base.PageConfig (ViewData pageMsg) Msg Model pageMsg pageModel msg model
+
+
+type alias Convert pageMsg pageModel msg model =
+    Base.Convert Msg Model pageMsg pageModel msg model
+
+
+type alias Options pageMsg pageModel msg model =
+    { convert : Convert pageMsg pageModel msg model
+    , getModel : model -> Maybe Model
+    , setModel : model -> Model -> model
+    , toMsg : Msg -> msg
+    }
+
+
+config : Options pageMsg pageModel msg model -> LayoutConfig pageMsg pageModel msg model
+config options =
+    { view = view options.convert
+    , update = update
+    , init = init
+    , getModel = options.getModel
+    , setModel = options.setModel
+    , toMsg = options.toMsg
+    }
+
+
+
+-- MODEL
+
+
+type alias Model =
+    {}
+
+
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( {}, Cmd.none )
+
+
+
+-- MESSAGE
+
+
+type Msg
+    = NoOp
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    ( model, Cmd.none )
 
 
 
 -- VIEWS
 
 
-mainView : MainViewContent msg -> Document msg
-mainView content =
+unflatMaybe : Maybe (Maybe a) -> Maybe a
+unflatMaybe =
+    Maybe.withDefault Nothing
+
+
+view : Convert pageMsg pageModel msg model -> Base.PageView (ViewData pageMsg) pageModel -> model -> Document msg
+view convert pageView model =
     let
+        content =
+            convert.toPageModel model
+                |> Maybe.map pageView
+
         title =
-            Maybe.withDefault "GithubAO" content.title
+            content
+                |> Maybe.map (\c -> Maybe.withDefault "GithubAO" c.title)
+                |> Maybe.withDefault "GithubAO"
 
         body =
             column
@@ -41,31 +108,21 @@ mainView content =
                 , width fill
                 ]
                 [ headerView
-                , Maybe.withDefault none content.titleSection
-                , Maybe.withDefault none content.mainSection
+                , content
+                    |> Maybe.map .titleSection
+                    |> unflatMaybe
+                    |> Maybe.withDefault none
+                    |> Element.map convert.fromPageMsg
+                , content
+                    |> Maybe.map .mainSection
+                    |> unflatMaybe
+                    |> Maybe.withDefault none
+                    |> Element.map convert.fromPageMsg
                 ]
     in
     { title = title
     , body = body
     }
-
-
-notFoundView : Document msg
-notFoundView =
-    mainView
-        { title = Just "404"
-        , titleSection = Nothing
-        , mainSection = Just (text "Not Found")
-        }
-
-
-loadingView : Document msg
-loadingView =
-    mainView
-        { title = Nothing
-        , titleSection = Nothing
-        , mainSection = Just (text "Loading...")
-        }
 
 
 map : (msg1 -> msg2) -> Document msg1 -> Document msg2
