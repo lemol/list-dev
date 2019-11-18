@@ -1,8 +1,9 @@
-import { Elm } from "./Main.elm";
+import { Elm } from "./Main";
 import createAuth0Client from '@auth0/auth0-spa-js';
 
 const app = Elm.Main.init({
-  node: document.getElementById("app")
+  node: document.getElementById("app"),
+  flags: null,
 });
 
 const getAuth0 = createAuth0Client({
