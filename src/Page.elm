@@ -1,5 +1,6 @@
 module Page exposing (Model, Msg, enterRoute, init, update, view)
 
+import Data.App exposing (AuthState)
 import Element exposing (..)
 import Layout.Main as Layout
 import Pages.DeveloperList as DevList
@@ -9,7 +10,7 @@ import Utils.Base as Base exposing (Document)
 
 
 
--- DATA
+-- CONFIG
 
 
 mainLayout : (pageMsg -> Msg) -> (Model -> Maybe pageModel) -> Layout.LayoutConfig pageMsg pageModel Msg Model
@@ -31,7 +32,7 @@ devListPage : Layout.PageConfig DevList.Msg DevList.Model Msg Model
 devListPage =
     { layout = mainLayout DevListMsg .devList
     , update = DevList.update
-    , view = DevList.view
+    , view = always DevList.view
     , init = always DevList.init
     , getModel = .devList
     , setModel = \m p -> { m | devList = Just p }
@@ -43,7 +44,7 @@ repoListPage : Layout.PageConfig RepoList.Msg RepoList.Model Msg Model
 repoListPage =
     { layout = mainLayout RepoListMsg .repoList
     , update = RepoList.update
-    , view = RepoList.view
+    , view = always RepoList.view
     , init = always RepoList.init
     , getModel = .repoList
     , setModel = \m p -> { m | repoList = Just p }
@@ -122,14 +123,14 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Document Msg
-view model =
+view : AuthState -> Model -> Document Msg
+view authState model =
     case model.route of
         DevListRoute ->
-            devListPage.layout.view DevList.view model
+            devListPage.layout.view (always DevList.view) authState model
 
         RepoListRoute ->
-            repoListPage.layout.view RepoList.view model
+            repoListPage.layout.view (always RepoList.view) authState model
 
         NotFoundRoute ->
             { title = "404", body = Element.text "Not Found" }

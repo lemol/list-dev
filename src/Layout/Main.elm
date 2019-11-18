@@ -1,12 +1,17 @@
-module Layout.Main exposing (LayoutConfig, Model, Msg, PageConfig, ViewData, config, init, map, update, view)
+module Layout.Main exposing (LayoutConfig, Model, Msg, PageConfig, ViewData, config, init, update, view)
 
+import Data.App as App exposing (AuthState(..), User)
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
-import Html.Attributes exposing (target)
+import Element.Input as Input
+import Html
+import Html.Attributes exposing (src, style, target)
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..))
-import Utils.Base as Base exposing (Document, mapDocument)
+import Utils.Base as Base exposing (Document)
 
 
 
@@ -20,12 +25,16 @@ type alias ViewData pageMsg =
     }
 
 
+type alias PageView pageMsg pageModel =
+    Base.PageView (ViewData pageMsg) AuthState pageModel
+
+
 type alias LayoutConfig pageMsg pageModel msg model =
-    Base.LayoutConfig (ViewData pageMsg) Msg Model pageModel msg model
+    Base.LayoutConfig (ViewData pageMsg) AuthState Msg Model pageModel msg model
 
 
 type alias PageConfig pageMsg pageModel msg model =
-    Base.PageConfig (ViewData pageMsg) Msg Model pageMsg pageModel msg model
+    Base.PageConfig (ViewData pageMsg) AuthState Msg Model pageMsg pageModel msg model
 
 
 type alias Convert pageMsg pageModel msg model =
@@ -56,12 +65,12 @@ config options =
 
 
 type alias Model =
-    {}
+    { userMenuOpen : Bool }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( {}, Cmd.none )
+    ( { userMenuOpen = False }, Cmd.none )
 
 
 
@@ -69,7 +78,9 @@ init _ =
 
 
 type Msg
-    = NoOp
+    = Login
+    | Logout
+    | ToggleUserMenu Bool
 
 
 
@@ -78,7 +89,15 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        Login ->
+            ( model, App.requestLogin () )
+
+        Logout ->
+            ( model, App.requestLogout () )
+
+        ToggleUserMenu open ->
+            ( { model | userMenuOpen = open }, Cmd.none )
 
 
 
@@ -90,12 +109,12 @@ unflatMaybe =
     Maybe.withDefault Nothing
 
 
-view : Convert pageMsg pageModel msg model -> Base.PageView (ViewData pageMsg) pageModel -> model -> Document msg
-view convert pageView model =
+view : Convert pageMsg pageModel msg model -> PageView pageMsg pageModel -> AuthState -> model -> Document msg
+view convert pageView authState model =
     let
         content =
             convert.toPageModel model
-                |> Maybe.map pageView
+                |> Maybe.map (pageView authState)
 
         title =
             content
@@ -107,7 +126,13 @@ view convert pageView model =
                 [ height fill
                 , width fill
                 ]
-                [ headerView
+                [ convert.toLayoutModel model
+                    |> Maybe.map
+                        (\m ->
+                            headerView m.userMenuOpen authState
+                        )
+                    |> Maybe.withDefault none
+                    |> Element.map convert.fromLayoutMsg
                 , content
                     |> Maybe.map .titleSection
                     |> unflatMaybe
@@ -125,15 +150,8 @@ view convert pageView model =
     }
 
 
-map : (msg1 -> msg2) -> Document msg1 -> Document msg2
-map f x =
-    { title = x.title
-    , body = Element.map f x.body
-    }
-
-
-headerView : Element msg
-headerView =
+headerView : Bool -> AuthState -> Element Msg
+headerView open authState =
     let
         logo =
             el
@@ -149,10 +167,10 @@ headerView =
                 , menuView
                 ]
 
-        rightContent =
-            row
+        right =
+            el
                 [ alignRight ]
-                [ text "" ]
+                (rightContent open authState)
     in
     el
         [ width fill
@@ -167,8 +185,119 @@ headerView =
             , width fill
             ]
             [ leftContent
-            , rightContent
+            , right
             ]
+
+
+rightContent : Bool -> AuthState -> Element Msg
+rightContent open authState =
+    case authState of
+        IDLE ->
+            Element.none
+
+        NotAuthenticated ->
+            signInButton
+
+        Authenticated user ->
+            userAvatar open user
+
+
+userAvatar : Bool -> User -> Element Msg
+userAvatar open user =
+    Input.button
+        [ if open then
+            below (userMenu user)
+
+          else
+            below Element.none
+        , Events.onLoseFocus (ToggleUserMenu False)
+        , focused [ Border.color <| rgba255 0 0 0 1 ]
+        ]
+        { onPress = Just <| ToggleUserMenu (not open)
+        , label =
+            row
+                [ pointer
+                , Font.color <| rgb255 0xFF 0xFF 0xFF
+                ]
+                [ el [] <|
+                    html <|
+                        Html.img
+                            [ style "width" "20px"
+                            , style "height" "20px"
+                            , style "border-radius" "3px"
+                            , style "border-width" "1px"
+                            , src user.picture
+                            ]
+                            []
+                , text "▾"
+                ]
+        }
+
+
+userMenu : User -> Element Msg
+userMenu user =
+    el
+        [ alignRight
+        , paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
+        ]
+    <|
+        column
+            [ width <| px 180
+            , Font.size 14
+            , Border.color <| rgba255 27 31 35 0.15
+            , Border.width 1
+            , Border.rounded 3
+            , Border.shadow
+                { offset = ( 0, 3 )
+                , size = 0
+                , blur = 12
+                , color = rgba255 27 31 35 0.15
+                }
+            , Background.color <| rgb255 0xFF 0xFF 0xFF
+            ]
+            [ paragraph []
+                [ text <| "Signed in as "
+                , el
+                    [ Font.bold
+                    , Font.color <| rgb255 0x24 0x29 0x2E
+                    ]
+                    (text user.nickname)
+                ]
+            , el
+                [ width fill
+                , paddingXY 0 8
+                ]
+              <|
+                el
+                    [ width fill
+                    , height <| px 1
+                    , Border.solid
+                    , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+                    , Border.color <| rgb255 0xE1 0xE4 0xE8
+                    ]
+                    Element.none
+            , el
+                [ Events.onClick Logout ]
+                (text "Your profile")
+            , Input.button
+                []
+                { onPress = Just Logout
+                , label = text "Sign out"
+                }
+            ]
+
+
+signInButton : Element Msg
+signInButton =
+    Input.button
+        [ Font.size 16
+        , Font.color <| rgb255 0xFF 0xFF 0xFF
+        , mouseOver
+            [ Font.color <| rgba255 0xFF 0xFF 0xFF 0.75 ]
+        ]
+        { onPress = Just Login
+        , label = text "Sign in"
+        }
 
 
 menuView : Element msg

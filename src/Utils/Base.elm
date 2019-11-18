@@ -9,20 +9,16 @@ type alias Document msg =
     }
 
 
-type ViewData data pageMsg
-    = ViewData data
-
-
 type alias UpdaterFn msg model =
     msg -> model -> ( model, Cmd msg )
 
 
-type alias PageView viewData pageModel =
-    pageModel -> viewData
+type alias PageView viewData appState pageModel =
+    appState -> pageModel -> viewData
 
 
-type alias LayoutConfig viewData layoutMsg layoutModel pageModel msg model =
-    { view : PageView viewData pageModel -> model -> Document msg
+type alias LayoutConfig viewData appState layoutMsg layoutModel pageModel msg model =
+    { view : PageView viewData appState pageModel -> appState -> model -> Document msg
     , update : UpdaterFn layoutMsg layoutModel
     , init : () -> ( layoutModel, Cmd layoutMsg )
     , getModel : model -> Maybe layoutModel
@@ -31,9 +27,9 @@ type alias LayoutConfig viewData layoutMsg layoutModel pageModel msg model =
     }
 
 
-type alias PageConfig viewData layoutMsg layoutModel pageMsg pageModel msg model =
-    { layout : LayoutConfig viewData layoutMsg layoutModel pageModel msg model
-    , view : PageView viewData pageModel
+type alias PageConfig viewData appState layoutMsg layoutModel pageMsg pageModel msg model =
+    { layout : LayoutConfig viewData appState layoutMsg layoutModel pageModel msg model
+    , view : PageView viewData appState pageModel
     , update : UpdaterFn pageMsg pageModel
     , init : () -> ( pageModel, Cmd pageMsg )
     , getModel : model -> Maybe pageModel
@@ -50,10 +46,10 @@ type alias Convert layoutMsg layoutModel pageMsg pageModel msg model =
     }
 
 
-viewPageOrLoading : PageConfig viewData layoutMsg layoutModel pageMsg pageModel msg model -> Convert layoutMsg layoutModel pageMsg pageModel msg model -> model -> Document msg
-viewPageOrLoading { view, layout } { toPageModel } model =
+viewPageOrLoading : PageConfig viewData appState layoutMsg layoutModel pageMsg pageModel msg model -> Convert layoutMsg layoutModel pageMsg pageModel msg model -> appState -> model -> Document msg
+viewPageOrLoading { view, layout } { toPageModel } appState model =
     toPageModel model
-        |> Maybe.map (always <| layout.view view model)
+        |> Maybe.map (always <| layout.view view appState model)
         |> Maybe.withDefault loading
 
 
@@ -71,7 +67,7 @@ mapDocument f x =
     }
 
 
-initPage : PageConfig viewData layoutMsg layoutModel pageMsg pageModel msg model -> model -> () -> ( model, Cmd msg )
+initPage : PageConfig viewData appState layoutMsg layoutModel pageMsg pageModel msg model -> model -> () -> ( model, Cmd msg )
 initPage page model flags =
     let
         layoutModel =
@@ -117,7 +113,7 @@ initPage page model flags =
 -- UPDATE
 
 
-updatePage : PageConfig viewData layoutMsg layoutModel pageMsg pageModel msg model -> pageMsg -> model -> ( model, Cmd msg )
+updatePage : PageConfig viewData appState layoutMsg layoutModel pageMsg pageModel msg model -> pageMsg -> model -> ( model, Cmd msg )
 updatePage page msg model =
     page.getModel model
         |> Maybe.map (page.update msg)

@@ -1,13 +1,23 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Navigation
+import Data.App exposing (AuthState(..), authStateDecoder)
 import Element exposing (..)
 import Element.Font as Font
+import Json.Decode as D
+import Json.Encode as E
 import Page
-import Routing exposing (Route, parseUrl)
+import Routing exposing (parseUrl)
 import Url
 import Url.Parser exposing (map)
+
+
+
+-- PORTS
+
+
+port setAuthState : (E.Value -> msg) -> Sub msg
 
 
 
@@ -16,6 +26,7 @@ import Url.Parser exposing (map)
 
 type alias Model =
     { page : Page.Model
+    , authState : AuthState
     , key : Navigation.Key
     }
 
@@ -25,9 +36,11 @@ type alias Model =
 
 
 type Msg
-    = LinkClicked Browser.UrlRequest
+    = NoOp
+    | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | PageMsg Page.Msg
+    | SetAuthState AuthState
 
 
 
@@ -57,6 +70,7 @@ init flags url key =
 
         model =
             { page = pageModel
+            , authState = IDLE
             , key = key
             }
     in
@@ -73,6 +87,9 @@ init flags url key =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
@@ -98,6 +115,11 @@ update msg model =
                 [ Cmd.map PageMsg newPageCmd ]
             )
 
+        SetAuthState authState ->
+            ( { model | authState = authState }
+            , Cmd.none
+            )
+
         PageMsg subMsg ->
             let
                 ( newPageModel, newPageCmd ) =
@@ -114,7 +136,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    setAuthState (D.decodeValue authStateDecoder >> Result.map SetAuthState >> Result.withDefault NoOp)
 
 
 
@@ -125,7 +147,7 @@ view : Model -> Browser.Document Msg
 view model =
     let
         page =
-            Page.view model.page
+            Page.view model.authState model.page
 
         body =
             layout
