@@ -1,4 +1,4 @@
-module Utils.Base exposing (..)
+module Utils.Layout exposing (..)
 
 import Element exposing (Element)
 

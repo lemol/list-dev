@@ -12,11 +12,11 @@
 
 - [x] 💅 **[elm-ui](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest)** - layout with zero css
 
-- [ ] 🚆 **Navigation**
+- [x] 🚆 **Navigation**
 
 - [x] 🚀 **Zero configuration deployment** on [ZEIT Now](https://zeit.co/guides/upgrade-to-zero-configuration/). Automated deployment on commit to Github.
 
-- [ ] JS interop using **Typescript**
+- [x] JS interop using **Typescript**
 
 - [ ] **Testing**
 
@@ -24,7 +24,7 @@
 
 - [ ] Github **GraphQL** API
 
-- [ ] **Authentication**
+- [x] **Authentication** with **[Auth0](https://auth0.com)**
 
 - [ ] **Responsive** design
 

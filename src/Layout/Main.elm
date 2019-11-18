@@ -11,7 +11,7 @@ import Html
 import Html.Attributes exposing (src, style, target)
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..))
-import Utils.Base as Base exposing (Document)
+import Utils.Layout as Layout exposing (Document)
 
 
 
@@ -26,19 +26,19 @@ type alias ViewData pageMsg =
 
 
 type alias PageView pageMsg pageModel =
-    Base.PageView (ViewData pageMsg) AuthState pageModel
+    Layout.PageView (ViewData pageMsg) AuthState pageModel
 
 
 type alias LayoutConfig pageMsg pageModel msg model =
-    Base.LayoutConfig (ViewData pageMsg) AuthState Msg Model pageModel msg model
+    Layout.LayoutConfig (ViewData pageMsg) AuthState Msg Model pageModel msg model
 
 
 type alias PageConfig pageMsg pageModel msg model =
-    Base.PageConfig (ViewData pageMsg) AuthState Msg Model pageMsg pageModel msg model
+    Layout.PageConfig (ViewData pageMsg) AuthState Msg Model pageMsg pageModel msg model
 
 
 type alias Convert pageMsg pageModel msg model =
-    Base.Convert Msg Model pageMsg pageModel msg model
+    Layout.Convert Msg Model pageMsg pageModel msg model
 
 
 type alias Options pageMsg pageModel msg model =

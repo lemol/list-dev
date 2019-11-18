@@ -6,7 +6,7 @@ import Layout.Main as Layout
 import Pages.DeveloperList as DevList
 import Pages.RepositoryList as RepoList
 import Routing exposing (Route(..))
-import Utils.Base as Base exposing (Document)
+import Utils.Layout as Base exposing (Document)
 
 
 
