@@ -236,13 +236,29 @@ userAvatar open user =
 
 userMenu : User -> Element Msg
 userMenu user =
+    let
+        itemAttr1 =
+            [ width fill
+            , height <| px 30
+            , mouseOver
+                [ Font.color <| rgb255 0xFF 0xFF 0xFF
+                , Background.color <| rgb255 0x03 0x66 0xCA
+                ]
+            ]
+
+        itemAttr2 =
+            [ centerY
+            , paddingXY 16 4
+            ]
+    in
     el
         [ alignRight
-        , paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
+        , paddingEach { top = 14, bottom = 8, left = 12, right = 0 }
         ]
     <|
         column
             [ width <| px 180
+            , paddingXY 0 4
             , Font.size 14
             , Border.color <| rgba255 27 31 35 0.15
             , Border.width 1
@@ -254,18 +270,37 @@ userMenu user =
                 , color = rgba255 27 31 35 0.15
                 }
             , Background.color <| rgb255 0xFF 0xFF 0xFF
-            ]
-            [ paragraph []
-                [ text <| "Signed in as "
-                , el
-                    [ Font.bold
-                    , Font.color <| rgb255 0x24 0x29 0x2E
+            , inFront <|
+                el
+                    [ alignRight
+                    , moveUp 10
+                    , paddingEach { right = 18, left = 0, top = 0, bottom = 0 }
+                    , Font.color <| rgb255 0xFF 0xFF 0xFF
                     ]
-                    (text user.nickname)
+                    (text "▲")
+            ]
+            [ el
+                [ width fill
+                , height <| px 30
+                , paddingXY 16 4
                 ]
+              <|
+                link
+                    []
+                    { url = "https://github.com/" ++ user.nickname
+                    , label =
+                        paragraph []
+                            [ text <| "Signed in as "
+                            , el
+                                [ Font.bold
+                                , Font.color <| rgb255 0x24 0x29 0x2E
+                                ]
+                                (text user.nickname)
+                            ]
+                    }
             , el
                 [ width fill
-                , paddingXY 0 8
+                , paddingEach { bottom = 4, top = 0, left = 0, right = 0 }
                 ]
               <|
                 el
@@ -277,13 +312,19 @@ userMenu user =
                     ]
                     Element.none
             , el
-                [ Events.onClick Logout ]
-                (text "Your profile")
-            , Input.button
-                []
-                { onPress = Just Logout
-                , label = text "Sign out"
-                }
+                itemAttr1
+              <|
+                link
+                    (itemAttr2 ++ [])
+                    { url = "https://github.com/" ++ user.nickname
+                    , label = text "Your profile"
+                    }
+            , el
+                itemAttr1
+              <|
+                el
+                    (itemAttr2 ++ [ Events.onClick Logout ])
+                    (text "Sign out")
             ]
 
 
