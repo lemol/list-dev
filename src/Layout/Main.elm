@@ -1,6 +1,6 @@
-module Layout.Main exposing (LayoutConfig, Model, Msg, PageConfig, ViewData, config, init, update, view)
+module Layout.Main exposing (LayoutConfig, LayoutData, Model, Msg, ViewData, init, update, view)
 
-import Data.App as App exposing (AuthState(..), User)
+import Data.App as App exposing (AuthState(..), Document, User)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -11,52 +11,28 @@ import Html
 import Html.Attributes exposing (src, style, target)
 import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..))
-import Utils.Layout as Layout exposing (Document)
 
 
 
 -- DATA
 
 
-type alias ViewData pageMsg =
-    { titleSection : Maybe (Element pageMsg)
-    , mainSection : Maybe (Element pageMsg)
-    , title : Maybe String
+type alias ViewData msg =
+    { title : Maybe String
+    , content : Element msg
     }
 
 
-type alias PageView pageMsg pageModel =
-    Layout.PageView (ViewData pageMsg) AuthState pageModel
-
-
-type alias LayoutConfig pageMsg pageModel msg model =
-    Layout.LayoutConfig (ViewData pageMsg) AuthState Msg Model pageModel msg model
-
-
-type alias PageConfig pageMsg pageModel msg model =
-    Layout.PageConfig (ViewData pageMsg) AuthState Msg Model pageMsg pageModel msg model
-
-
-type alias Convert pageMsg pageModel msg model =
-    Layout.Convert Msg Model pageMsg pageModel msg model
-
-
-type alias Options pageMsg pageModel msg model =
-    { convert : Convert pageMsg pageModel msg model
-    , getModel : model -> Maybe Model
-    , setModel : model -> Model -> model
-    , toMsg : Msg -> msg
+type alias LayoutConfig msg =
+    { toMsg : Msg -> msg
+    , page : ViewData msg
     }
 
 
-config : Options pageMsg pageModel msg model -> LayoutConfig pageMsg pageModel msg model
-config options =
-    { view = view options.convert
-    , update = update
-    , init = init
-    , getModel = options.getModel
-    , setModel = options.setModel
-    , toMsg = options.toMsg
+type alias LayoutData msg =
+    { toMsg : Msg -> msg
+    , model : Model
+    , authState : AuthState
     }
 
 
@@ -104,45 +80,20 @@ update msg model =
 -- VIEWS
 
 
-unflatMaybe : Maybe (Maybe a) -> Maybe a
-unflatMaybe =
-    Maybe.withDefault Nothing
-
-
-view : Convert pageMsg pageModel msg model -> PageView pageMsg pageModel -> AuthState -> model -> Document msg
-view convert pageView authState model =
+view : LayoutConfig msg -> AuthState -> Model -> Document msg
+view { page, toMsg } authState model =
     let
-        content =
-            convert.toPageModel model
-                |> Maybe.map (pageView authState)
-
         title =
-            content
-                |> Maybe.map (\c -> Maybe.withDefault "GithubAO" c.title)
-                |> Maybe.withDefault "GithubAO"
+            Maybe.withDefault "GithubAO" page.title
 
         body =
             column
                 [ height fill
                 , width fill
                 ]
-                [ convert.toLayoutModel model
-                    |> Maybe.map
-                        (\m ->
-                            headerView m.userMenuOpen authState
-                        )
-                    |> Maybe.withDefault none
-                    |> Element.map convert.fromLayoutMsg
-                , content
-                    |> Maybe.map .titleSection
-                    |> unflatMaybe
-                    |> Maybe.withDefault none
-                    |> Element.map convert.fromPageMsg
-                , content
-                    |> Maybe.map .mainSection
-                    |> unflatMaybe
-                    |> Maybe.withDefault none
-                    |> Element.map convert.fromPageMsg
+                [ headerView model.userMenuOpen authState
+                    |> Element.map toMsg
+                , page.content
                 ]
     in
     { title = title

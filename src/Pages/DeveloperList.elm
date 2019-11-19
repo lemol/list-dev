@@ -2,6 +2,7 @@ module Pages.DeveloperList exposing (Model, Msg, init, update, view)
 
 -- import Layout.Trending as Layout
 
+import Data.App exposing (Document)
 import Data.Developer exposing (..)
 import Element exposing (..)
 import Element.Border as Border
@@ -9,10 +10,18 @@ import Element.Font as Font
 import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style, target)
-import Layout.Main exposing (ViewData)
+import Layout.Main as Layout exposing (LayoutData)
 import RemoteData exposing (RemoteData(..))
 import UI.Button exposing (githubTextLink)
 import UI.SelectMenu as SelectMenu
+
+
+
+-- DATA
+
+
+type alias PageConfig msg =
+    { toMsg : Msg -> msg }
 
 
 
@@ -121,12 +130,19 @@ update msg model =
 -- VIEW
 
 
-view : Model -> ViewData Msg
-view model =
-    { titleSection = Nothing
-    , mainSection = Just <| body model
-    , title = Just "Developers"
-    }
+view : PageConfig msg -> LayoutData msg -> Model -> Document msg
+view { toMsg } layout model =
+    Layout.view
+        { toMsg = layout.toMsg
+        , page =
+            { title = Just "Developers"
+            , content =
+                body model
+                    |> Element.map toMsg
+            }
+        }
+        layout.authState
+        layout.model
 
 
 

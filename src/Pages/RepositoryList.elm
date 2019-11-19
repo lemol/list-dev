@@ -1,10 +1,19 @@
 module Pages.RepositoryList exposing (Model, Msg(..), init, update, view)
 
+import Data.App exposing (Document)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Region as Region
-import Layout.Main exposing (ViewData)
-import Layout.Trending as Layout
+import Layout.Main as Layout exposing (LayoutData)
+
+
+
+-- import Layout.Trending as Layout
+-- DATA
+
+
+type alias PageConfig msg =
+    { toMsg : Msg -> msg }
 
 
 
@@ -45,12 +54,17 @@ update msg model =
 -- VIEW
 
 
-view : Model -> ViewData Msg
-view _ =
-    { titleSection = Nothing
-    , mainSection = Just body
-    , title = Just "Repositories"
-    }
+view : PageConfig msg -> LayoutData msg -> Model -> Document msg
+view { toMsg } layout _ =
+    Layout.view
+        { toMsg = layout.toMsg
+        , page =
+            { title = Just "Repositories"
+            , content = Element.map toMsg body
+            }
+        }
+        layout.authState
+        layout.model
 
 
 
@@ -63,7 +77,7 @@ view _ =
 --     }
 
 
-body : Element msg
+body : Element Msg
 body =
     textColumn
         [ centerX

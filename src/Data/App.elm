@@ -1,5 +1,6 @@
-port module Data.App exposing (AuthState(..), User, authStateDecoder, requestLogin, requestLogout, userDecoder)
+port module Data.App exposing (AuthState(..), Document, User, authStateDecoder, requestLogin, requestLogout, userDecoder)
 
+import Element exposing (Element)
 import Json.Decode as D exposing (string)
 
 
@@ -48,3 +49,13 @@ authStateDecoder =
             D.map Authenticated userDecoder
     in
     D.oneOf [ notAuthenticated, authenticated ]
+
+
+
+-- VIEW DATA
+
+
+type alias Document msg =
+    { title : String
+    , body : Element msg
+    }

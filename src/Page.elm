@@ -1,55 +1,11 @@
 module Page exposing (Model, Msg, enterRoute, init, update, view)
 
-import Data.App exposing (AuthState)
+import Data.App exposing (AuthState, Document)
 import Element exposing (..)
 import Layout.Main as Layout
 import Pages.DeveloperList as DevList
 import Pages.RepositoryList as RepoList
 import Routing exposing (Route(..))
-import Utils.Layout as Base exposing (Document)
-
-
-
--- CONFIG
-
-
-mainLayout : (pageMsg -> Msg) -> (Model -> Maybe pageModel) -> Layout.LayoutConfig pageMsg pageModel Msg Model
-mainLayout fromPageMsg toPageModel =
-    Layout.config
-        { convert =
-            { fromPageMsg = fromPageMsg
-            , fromLayoutMsg = MainLayoutMsg
-            , toPageModel = toPageModel
-            , toLayoutModel = .mainLayout
-            }
-        , getModel = .mainLayout
-        , setModel = \m p -> { m | mainLayout = Just p }
-        , toMsg = MainLayoutMsg
-        }
-
-
-devListPage : Layout.PageConfig DevList.Msg DevList.Model Msg Model
-devListPage =
-    { layout = mainLayout DevListMsg .devList
-    , update = DevList.update
-    , view = always DevList.view
-    , init = always DevList.init
-    , getModel = .devList
-    , setModel = \m p -> { m | devList = Just p }
-    , toMsg = DevListMsg
-    }
-
-
-repoListPage : Layout.PageConfig RepoList.Msg RepoList.Model Msg Model
-repoListPage =
-    { layout = mainLayout RepoListMsg .repoList
-    , update = RepoList.update
-    , view = always RepoList.view
-    , init = always RepoList.init
-    , getModel = .repoList
-    , setModel = \m p -> { m | repoList = Just p }
-    , toMsg = RepoListMsg
-    }
 
 
 
@@ -96,27 +52,39 @@ update msg model =
     case msg of
         MainLayoutMsg subMsg ->
             let
-                config =
-                    mainLayout MainLayoutMsg (always Nothing)
-
-                updated =
+                ( newModel, cmd ) =
                     model.mainLayout
-                        |> Maybe.map (config.update subMsg)
+                        |> Maybe.map (Layout.update subMsg)
+                        |> Maybe.map (Tuple.mapFirst Just)
+                        |> Maybe.withDefault ( Nothing, Cmd.none )
             in
-            case updated of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just ( newLayoutModel, layoutCmd ) ->
-                    ( { model | mainLayout = Just newLayoutModel }
-                    , Cmd.map MainLayoutMsg layoutCmd
-                    )
+            ( { model | mainLayout = newModel }
+            , Cmd.map MainLayoutMsg cmd
+            )
 
         DevListMsg subMsg ->
-            Base.updatePage devListPage subMsg model
+            let
+                ( newModel, cmd ) =
+                    model.devList
+                        |> Maybe.map (DevList.update subMsg)
+                        |> Maybe.map (Tuple.mapFirst Just)
+                        |> Maybe.withDefault ( Nothing, Cmd.none )
+            in
+            ( { model | devList = newModel }
+            , Cmd.map DevListMsg cmd
+            )
 
         RepoListMsg subMsg ->
-            Base.updatePage repoListPage subMsg model
+            let
+                ( newModel, cmd ) =
+                    model.repoList
+                        |> Maybe.map (RepoList.update subMsg)
+                        |> Maybe.map (Tuple.mapFirst Just)
+                        |> Maybe.withDefault ( Nothing, Cmd.none )
+            in
+            ( { model | repoList = newModel }
+            , Cmd.map RepoListMsg cmd
+            )
 
 
 
@@ -125,15 +93,48 @@ update msg model =
 
 view : AuthState -> Model -> Document Msg
 view authState model =
-    case model.route of
-        DevListRoute ->
-            devListPage.layout.view (always DevList.view) authState model
+    let
+        withMainLayout : Layout.Model -> Document Msg
+        withMainLayout layoutModel =
+            let
+                mainLayout =
+                    { toMsg = MainLayoutMsg
+                    , model = layoutModel
+                    , authState = authState
+                    }
+            in
+            case model.route of
+                DevListRoute ->
+                    model.devList
+                        |> Maybe.map
+                            (DevList.view
+                                { toMsg = DevListMsg }
+                                mainLayout
+                            )
+                        |> Maybe.withDefault viewEmpty
 
-        RepoListRoute ->
-            repoListPage.layout.view (always RepoList.view) authState model
+                RepoListRoute ->
+                    model.repoList
+                        |> Maybe.map
+                            (RepoList.view
+                                { toMsg = RepoListMsg }
+                                mainLayout
+                            )
+                        |> Maybe.withDefault viewEmpty
 
-        NotFoundRoute ->
-            { title = "404", body = Element.text "Not Found" }
+                NotFoundRoute ->
+                    { title = "404", body = Element.text "Not Found" }
+    in
+    model.mainLayout
+        |> Maybe.map withMainLayout
+        |> Maybe.withDefault viewEmpty
+
+
+viewEmpty : Document msg
+viewEmpty =
+    { title = "GithubAO"
+    , body = Element.none
+    }
 
 
 
@@ -146,10 +147,48 @@ enterRoute route model =
         ( newModel, cmd ) =
             case route of
                 DevListRoute ->
-                    Base.initPage devListPage model ()
+                    let
+                        layout =
+                            model.mainLayout
+                                |> Maybe.map (\m -> ( m, Cmd.none ))
+                                |> Maybe.withDefault (Layout.init ())
+
+                        page =
+                            model.devList
+                                |> Maybe.map (\m -> ( m, Cmd.none ))
+                                |> Maybe.withDefault DevList.init
+                    in
+                    ( { model
+                        | mainLayout = Just <| Tuple.first layout
+                        , devList = Just <| Tuple.first page
+                      }
+                    , Cmd.batch
+                        [ Cmd.map MainLayoutMsg (Tuple.second layout)
+                        , Cmd.map DevListMsg (Tuple.second page)
+                        ]
+                    )
 
                 RepoListRoute ->
-                    Base.initPage repoListPage model ()
+                    let
+                        layout =
+                            model.mainLayout
+                                |> Maybe.map (\m -> ( m, Cmd.none ))
+                                |> Maybe.withDefault (Layout.init ())
+
+                        page =
+                            model.repoList
+                                |> Maybe.map (\m -> ( m, Cmd.none ))
+                                |> Maybe.withDefault RepoList.init
+                    in
+                    ( { model
+                        | mainLayout = Just <| Tuple.first layout
+                        , repoList = Just <| Tuple.first page
+                      }
+                    , Cmd.batch
+                        [ Cmd.map MainLayoutMsg (Tuple.second layout)
+                        , Cmd.map RepoListMsg (Tuple.second page)
+                        ]
+                    )
 
                 NotFoundRoute ->
                     ( model, Cmd.none )
