@@ -1,6 +1,6 @@
 module Page exposing (Model, Msg, enterRoute, init, update, view)
 
-import Data.App exposing (AuthState, Document)
+import Data.App exposing (AppData, Document)
 import Element exposing (..)
 import Layout.Main as MainLayout
 import Layout.Trending as TrendingLayout
@@ -107,20 +107,9 @@ update msg model =
 -- VIEW
 
 
-view : AuthState -> Model -> Document Msg
-view authState model =
+view : AppData -> Model -> Document Msg
+view app model =
     let
-        -- withMainLayout : Maybe MainLayout.Model -> (MainLayout.PageData Msg -> Document Msg) -> Document Msg
-        -- withMainLayout layoutModel_ build =
-        --     case layoutModel_ of
-        --         Nothing ->
-        --             viewEmpty
-        --         Just layoutModel ->
-        --             build
-        --                 { toMsg = MainLayoutMsg
-        --                 , model = layoutModel
-        --                 , authState = authState
-        --                 }
         withTrendingLayout : Maybe MainLayout.Model -> Maybe TrendingLayout.Model -> (MainLayout.PageData Msg -> TrendingLayout.PageData Msg -> Document Msg) -> Document Msg
         withTrendingLayout mainLayoutModel_ trendingLayoutModel_ build =
             case ( mainLayoutModel_, trendingLayoutModel_ ) of
@@ -134,7 +123,7 @@ view authState model =
                     build
                         { toMsg = MainLayoutMsg
                         , model = mainLayoutModel
-                        , authState = authState
+                        , app = app
                         }
                         { toMsg = TrendingLayoutMsg
                         , model = trendingLayoutModel

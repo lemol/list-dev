@@ -1,6 +1,6 @@
-port module Data.App exposing (AuthState(..), Document, User, authStateDecoder, requestLogin, requestLogout, userDecoder)
+port module Data.App exposing (AppData, AuthState(..), Document, User, authStateDecoder, requestLogin, requestLogout, userDecoder)
 
-import Element exposing (Element)
+import Element exposing (Device, Element)
 import Json.Decode as D exposing (string)
 
 
@@ -31,6 +31,22 @@ type AuthState
     | Authenticated User
 
 
+type alias AppData =
+    { auth : AuthState
+    , device : Device
+    }
+
+
+type alias Document msg =
+    { title : String
+    , body : Element msg
+    }
+
+
+
+-- DECODER
+
+
 userDecoder : D.Decoder User
 userDecoder =
     D.map3 User
@@ -49,13 +65,3 @@ authStateDecoder =
             D.map Authenticated userDecoder
     in
     D.oneOf [ notAuthenticated, authenticated ]
-
-
-
--- VIEW DATA
-
-
-type alias Document msg =
-    { title : String
-    , body : Element msg
-    }

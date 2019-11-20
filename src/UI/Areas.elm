@@ -22,12 +22,13 @@ headerView config =
                 (text config.title)
 
         makeSubTitle txt =
-            el
+            paragraph
                 [ centerX
                 , Font.size 16
+                , Font.center
                 , Font.color <| rgb255 88 96 105
                 ]
-                (text txt)
+                [ text txt ]
 
         subTitle =
             config.subTitle

@@ -1,6 +1,6 @@
 module Layout.Main exposing (Model, Msg, PageConfig, PageData, ViewData, init, update, view)
 
-import Data.App as App exposing (AuthState(..), Document, User)
+import Data.App as App exposing (AppData, AuthState(..), Document, User)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -31,7 +31,7 @@ type alias PageConfig msg =
 type alias PageData msg =
     { toMsg : Msg -> msg
     , model : Model
-    , authState : AuthState
+    , app : AppData
     }
 
 
@@ -79,8 +79,8 @@ init _ =
 -- VIEWS
 
 
-view : PageConfig msg -> AuthState -> Model -> Document msg
-view { content, toMsg } authState model =
+view : PageConfig msg -> AppData -> Model -> Document msg
+view { content, toMsg } { auth } model =
     let
         title =
             Maybe.withDefault "GithubAO" content.title
@@ -90,7 +90,7 @@ view { content, toMsg } authState model =
                 [ height fill
                 , width fill
                 ]
-                [ headerView model.userMenuOpen authState
+                [ headerView model.userMenuOpen auth
                     |> Element.map toMsg
                 , content.top
                     |> Maybe.withDefault Element.none

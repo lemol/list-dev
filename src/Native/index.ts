@@ -3,7 +3,10 @@ import createAuth0Client from '@auth0/auth0-spa-js';
 
 const app = Elm.Main.init({
   node: document.getElementById("app"),
-  flags: null,
+  flags: {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  },
 });
 
 const getAuth0 = createAuth0Client({

@@ -1,8 +1,9 @@
 port module Main exposing (main)
 
 import Browser
+import Browser.Events
 import Browser.Navigation as Navigation
-import Data.App exposing (AuthState(..), authStateDecoder)
+import Data.App exposing (AppData, AuthState(..), authStateDecoder)
 import Element exposing (..)
 import Element.Font as Font
 import Json.Decode as D
@@ -26,8 +27,14 @@ port setAuthState : (E.Value -> msg) -> Sub msg
 
 type alias Model =
     { page : Page.Model
-    , authState : AuthState
+    , app : AppData
     , key : Navigation.Key
+    }
+
+
+type alias Flags =
+    { width : Int
+    , height : Int
     }
 
 
@@ -41,13 +48,14 @@ type Msg
     | UrlChanged Url.Url
     | PageMsg Page.Msg
     | SetAuthState AuthState
+    | WindowResized Int Int
 
 
 
 -- PROGRAM
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -59,19 +67,23 @@ main =
         }
 
 
-init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init : Flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
         route =
             parseUrl url
 
         ( pageModel, pageCmd ) =
-            Page.init flags route
+            Page.init () route
 
         model =
             { page = pageModel
-            , authState = IDLE
             , key = key
+            , app =
+                { auth = IDLE
+                , device =
+                    device flags.width flags.height
+                }
             }
     in
     ( model
@@ -116,7 +128,12 @@ update msg model =
             )
 
         SetAuthState authState ->
-            ( { model | authState = authState }
+            ( { model | app = updateAppAuth model.app authState }
+            , Cmd.none
+            )
+
+        WindowResized w h ->
+            ( { model | app = updateAppDevice model.app w h }
             , Cmd.none
             )
 
@@ -136,7 +153,10 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    setAuthState (D.decodeValue authStateDecoder >> Result.map SetAuthState >> Result.withDefault NoOp)
+    Sub.batch
+        [ setAuthState (D.decodeValue authStateDecoder >> Result.map SetAuthState >> Result.withDefault NoOp)
+        , Browser.Events.onResize WindowResized
+        ]
 
 
 
@@ -147,11 +167,13 @@ view : Model -> Browser.Document Msg
 view model =
     let
         page =
-            Page.view model.authState model.page
+            Page.view model.app model.page
 
         body =
             layout
                 [ Font.family mainFontFamily
+                , width fill
+                , height fill
                 ]
                 (Element.map PageMsg page.body)
     in
@@ -172,3 +194,25 @@ mainFontFamily =
         , "Apple Color Emoji"
         , "Segoe UI Emoji"
         ]
+
+
+
+-- UTILS
+
+
+updateAppAuth : AppData -> AuthState -> AppData
+updateAppAuth app auth =
+    { app | auth = auth }
+
+
+updateAppDevice : AppData -> Int -> Int -> AppData
+updateAppDevice app width height =
+    { app | device = device width height }
+
+
+device : Int -> Int -> Device
+device width height =
+    classifyDevice
+        { width = width
+        , height = height
+        }

@@ -1,6 +1,7 @@
 {
     "checks": {
         "ImportAll": false,
-        "ExposeAll": false
+        "ExposeAll": false,
+        "SingleFieldRecord": false
     }
 }

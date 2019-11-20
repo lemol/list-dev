@@ -1,6 +1,6 @@
 module Layout.Trending exposing (Model, Msg, PageConfig, PageData, TrendingPage(..), ViewData, init, update, view)
 
-import Data.App exposing (AuthState(..), Document)
+import Data.App exposing (Document)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -80,7 +80,7 @@ view config layout model =
         { toMsg = layout.toMsg
         , content = viewContent config model
         }
-        layout.authState
+        layout.app
         layout.model
 
 
