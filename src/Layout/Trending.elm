@@ -6,7 +6,6 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Layout.Main as MainLayout
-import RemoteData exposing (RemoteData(..))
 import Routing exposing (Route(..), toUrl)
 import UI.Areas as Areas
 

@@ -9,8 +9,6 @@ import Element.Font as Font
 import Element.Input as Input
 import Html
 import Html.Attributes exposing (src, style, target)
-import RemoteData exposing (RemoteData(..))
-import Routing exposing (Route(..))
 
 
 
