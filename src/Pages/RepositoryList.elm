@@ -4,7 +4,8 @@ import Data.App exposing (Document)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Region as Region
-import Layout.Main as Layout exposing (LayoutData)
+import Layout.Main as MainLayout
+import Layout.Trending as Layout
 
 
 
@@ -54,27 +55,20 @@ update msg model =
 -- VIEW
 
 
-view : PageConfig msg -> LayoutData msg -> Model -> Document msg
-view { toMsg } layout _ =
+view : PageConfig msg -> MainLayout.PageData msg -> Layout.PageData msg -> Model -> Document msg
+view { toMsg } mainLayout layout _ =
     Layout.view
         { toMsg = layout.toMsg
         , page =
-            { title = Just "Repositories"
-            , content = Element.map toMsg body
+            { title = "Repositories"
+            , subTitle = "See what the GitHub community from Angola is most excited about."
+            , page = Layout.Repositories
+            , filter = Nothing
+            , body = body |> Element.map toMsg
             }
         }
-        layout.authState
+        mainLayout
         layout.model
-
-
-
--- Layout.view
---     { title = "Repositories"
---     , subTitle = "See what the GitHub community from Angola is most excited about."
---     , page = Layout.Repositories
---     , filter = Nothing
---     , body = body
---     }
 
 
 body : Element Msg

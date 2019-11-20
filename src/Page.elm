@@ -2,7 +2,8 @@ module Page exposing (Model, Msg, enterRoute, init, update, view)
 
 import Data.App exposing (AuthState, Document)
 import Element exposing (..)
-import Layout.Main as Layout
+import Layout.Main as MainLayout
+import Layout.Trending as TrendingLayout
 import Pages.DeveloperList as DevList
 import Pages.RepositoryList as RepoList
 import Routing exposing (Route(..))
@@ -14,7 +15,8 @@ import Routing exposing (Route(..))
 
 type alias Model =
     { route : Route
-    , mainLayout : Maybe Layout.Model
+    , mainLayout : Maybe MainLayout.Model
+    , trendingLayout : Maybe TrendingLayout.Model
     , devList : Maybe DevList.Model
     , repoList : Maybe RepoList.Model
     }
@@ -26,6 +28,7 @@ init _ route =
         model =
             { route = route
             , mainLayout = Nothing
+            , trendingLayout = Nothing
             , devList = Nothing
             , repoList = Nothing
             }
@@ -38,7 +41,8 @@ init _ route =
 
 
 type Msg
-    = MainLayoutMsg Layout.Msg
+    = MainLayoutMsg MainLayout.Msg
+    | TrendingLayoutMsg TrendingLayout.Msg
     | DevListMsg DevList.Msg
     | RepoListMsg RepoList.Msg
 
@@ -54,12 +58,24 @@ update msg model =
             let
                 ( newModel, cmd ) =
                     model.mainLayout
-                        |> Maybe.map (Layout.update subMsg)
+                        |> Maybe.map (MainLayout.update subMsg)
                         |> Maybe.map (Tuple.mapFirst Just)
                         |> Maybe.withDefault ( Nothing, Cmd.none )
             in
             ( { model | mainLayout = newModel }
             , Cmd.map MainLayoutMsg cmd
+            )
+
+        TrendingLayoutMsg subMsg ->
+            let
+                ( newModel, cmd ) =
+                    model.trendingLayout
+                        |> Maybe.map (TrendingLayout.update subMsg)
+                        |> Maybe.map (Tuple.mapFirst Just)
+                        |> Maybe.withDefault ( Nothing, Cmd.none )
+            in
+            ( { model | trendingLayout = newModel }
+            , Cmd.map TrendingLayoutMsg cmd
             )
 
         DevListMsg subMsg ->
@@ -94,40 +110,67 @@ update msg model =
 view : AuthState -> Model -> Document Msg
 view authState model =
     let
-        withMainLayout : Layout.Model -> Document Msg
-        withMainLayout layoutModel =
-            let
-                mainLayout =
-                    { toMsg = MainLayoutMsg
-                    , model = layoutModel
-                    , authState = authState
-                    }
-            in
-            case model.route of
-                DevListRoute ->
+        -- withMainLayout : Maybe MainLayout.Model -> (MainLayout.PageData Msg -> Document Msg) -> Document Msg
+        -- withMainLayout layoutModel_ build =
+        --     case layoutModel_ of
+        --         Nothing ->
+        --             viewEmpty
+        --         Just layoutModel ->
+        --             build
+        --                 { toMsg = MainLayoutMsg
+        --                 , model = layoutModel
+        --                 , authState = authState
+        --                 }
+        withTrendingLayout : Maybe MainLayout.Model -> Maybe TrendingLayout.Model -> (MainLayout.PageData Msg -> TrendingLayout.PageData Msg -> Document Msg) -> Document Msg
+        withTrendingLayout mainLayoutModel_ trendingLayoutModel_ build =
+            case ( mainLayoutModel_, trendingLayoutModel_ ) of
+                ( Nothing, _ ) ->
+                    viewEmpty
+
+                ( _, Nothing ) ->
+                    viewEmpty
+
+                ( Just mainLayoutModel, Just trendingLayoutModel ) ->
+                    build
+                        { toMsg = MainLayoutMsg
+                        , model = mainLayoutModel
+                        , authState = authState
+                        }
+                        { toMsg = TrendingLayoutMsg
+                        , model = trendingLayoutModel
+                        }
+    in
+    case model.route of
+        DevListRoute ->
+            withTrendingLayout model.mainLayout
+                model.trendingLayout
+                (\mainLayout trendingLayout ->
                     model.devList
                         |> Maybe.map
                             (DevList.view
                                 { toMsg = DevListMsg }
                                 mainLayout
+                                trendingLayout
                             )
                         |> Maybe.withDefault viewEmpty
+                )
 
-                RepoListRoute ->
+        RepoListRoute ->
+            withTrendingLayout model.mainLayout
+                model.trendingLayout
+                (\mainLayout trendingLayout ->
                     model.repoList
                         |> Maybe.map
                             (RepoList.view
                                 { toMsg = RepoListMsg }
                                 mainLayout
+                                trendingLayout
                             )
                         |> Maybe.withDefault viewEmpty
+                )
 
-                NotFoundRoute ->
-                    { title = "404", body = Element.text "Not Found" }
-    in
-    model.mainLayout
-        |> Maybe.map withMainLayout
-        |> Maybe.withDefault viewEmpty
+        NotFoundRoute ->
+            { title = "404", body = Element.text "Not Found" }
 
 
 viewEmpty : Document msg
@@ -148,10 +191,15 @@ enterRoute route model =
             case route of
                 DevListRoute ->
                     let
-                        layout =
+                        mainLayout =
                             model.mainLayout
                                 |> Maybe.map (\m -> ( m, Cmd.none ))
-                                |> Maybe.withDefault (Layout.init ())
+                                |> Maybe.withDefault (MainLayout.init ())
+
+                        trendingLayout =
+                            model.trendingLayout
+                                |> Maybe.map (\m -> ( m, Cmd.none ))
+                                |> Maybe.withDefault TrendingLayout.init
 
                         page =
                             model.devList
@@ -159,21 +207,28 @@ enterRoute route model =
                                 |> Maybe.withDefault DevList.init
                     in
                     ( { model
-                        | mainLayout = Just <| Tuple.first layout
+                        | mainLayout = Just <| Tuple.first mainLayout
+                        , trendingLayout = Just <| Tuple.first trendingLayout
                         , devList = Just <| Tuple.first page
                       }
                     , Cmd.batch
-                        [ Cmd.map MainLayoutMsg (Tuple.second layout)
+                        [ Cmd.map MainLayoutMsg (Tuple.second mainLayout)
+                        , Cmd.map TrendingLayoutMsg (Tuple.second trendingLayout)
                         , Cmd.map DevListMsg (Tuple.second page)
                         ]
                     )
 
                 RepoListRoute ->
                     let
-                        layout =
+                        mainLayout =
                             model.mainLayout
                                 |> Maybe.map (\m -> ( m, Cmd.none ))
-                                |> Maybe.withDefault (Layout.init ())
+                                |> Maybe.withDefault (MainLayout.init ())
+
+                        trendingLayout =
+                            model.trendingLayout
+                                |> Maybe.map (\m -> ( m, Cmd.none ))
+                                |> Maybe.withDefault TrendingLayout.init
 
                         page =
                             model.repoList
@@ -181,11 +236,13 @@ enterRoute route model =
                                 |> Maybe.withDefault RepoList.init
                     in
                     ( { model
-                        | mainLayout = Just <| Tuple.first layout
+                        | mainLayout = Just <| Tuple.first mainLayout
+                        , trendingLayout = Just <| Tuple.first trendingLayout
                         , repoList = Just <| Tuple.first page
                       }
                     , Cmd.batch
-                        [ Cmd.map MainLayoutMsg (Tuple.second layout)
+                        [ Cmd.map MainLayoutMsg (Tuple.second mainLayout)
+                        , Cmd.map TrendingLayoutMsg (Tuple.second trendingLayout)
                         , Cmd.map RepoListMsg (Tuple.second page)
                         ]
                     )

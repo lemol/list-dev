@@ -1,114 +1,181 @@
-module Layout.Trending exposing (foo)
+module Layout.Trending exposing (Model, Msg, PageConfig, PageData, TrendingPage(..), ViewData, init, update, view)
+
+import Data.App exposing (AuthState(..), Document)
+import Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
+import Layout.Main as MainLayout
+import RemoteData exposing (RemoteData(..))
+import Routing exposing (Route(..), toUrl)
+import UI.Areas as Areas
 
 
-foo : Int
-foo =
-    0
+
+-- DATA
+
+
+type TrendingPage
+    = Repositories
+    | Developers
+
+
+type alias ViewData msg =
+    { title : String
+    , subTitle : String
+    , page : TrendingPage
+    , filter : Maybe (Element msg)
+    , body : Element msg
+    }
+
+
+type alias PageConfig msg =
+    { toMsg : Msg -> msg
+    , page : ViewData msg
+    }
+
+
+type alias PageData msg =
+    { toMsg : Msg -> msg
+    , model : Model
+    }
 
 
 
--- module Layout.Trending exposing (TrendingPage(..), TrendingPageConfig, view)
--- import Element exposing (..)
--- import Element.Background as Background
--- import Element.Border as Border
--- import Element.Font as Font
--- import Layout.Main as Main
--- import RemoteData exposing (RemoteData(..))
--- import Routing exposing (Route(..), toUrl)
--- import UI.Areas as Areas
--- -- DATA
--- type TrendingPage
---     = Repositories
---     | Developers
--- type alias TrendingPageConfig msg =
---     { title : String
---     , subTitle : String
---     , page : TrendingPage
---     , filter : Maybe (Element msg)
---     , body : Element msg
---     }
--- -- VIEWS
--- view : TrendingPageConfig msg -> Main.Document msg
--- view config =
---     Main.mainView
---         { titleSection = Just <| headerView config
---         , mainSection = Just <| mainSectionView config
---         , title = Just <| "Trending " ++ config.title ++ " from Angola"
---         }
--- headerView : TrendingPageConfig msg -> Element msg
--- headerView { title, subTitle } =
---     Areas.headerView
---         { title = title
---         , subTitle = Just subTitle
---         }
--- mainSectionView : TrendingPageConfig msg -> Element msg
--- mainSectionView config =
---     let
---         header =
---             row
---                 [ centerY, width fill ]
---                 [ navigationButtons config
---                 , Maybe.withDefault none config.filter
---                 ]
---         body =
---             config.body
---     in
---     Areas.boxView
---         { header = header
---         , body = body
---         }
--- navigationButtons : TrendingPageConfig msg -> Element msg
--- navigationButtons config =
---     let
---         repoAttrs =
---             case config.page of
---                 Repositories ->
---                     [ Font.color <| rgb255 255 255 255
---                     , Border.color <| rgb255 225 228 232
---                     , Background.color <| rgb255 3 102 214
---                     ]
---                 _ ->
---                     [ Font.color <| rgb255 88 96 105
---                     , Border.color <| rgb255 225 228 232
---                     ]
---         devAttrs =
---             case config.page of
---                 Developers ->
---                     [ Font.color <| rgb255 255 255 255
---                     , Border.color <| rgb255 225 228 232
---                     , Background.color <| rgb255 3 102 214
---                     ]
---                 _ ->
---                     [ Font.color <| rgb255 88 96 105
---                     , Border.color <| rgb255 225 228 232
---                     ]
---         buttonAttrs =
---             [ centerX
---             , centerY
---             , height fill
---             , width fill
---             , paddingXY 14 6
---             ]
---     in
---     row
---         [ height <| px 34
---         , Font.size 14
---         , Font.semiBold
---         ]
---         [ link
---             ([ Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
---              , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
---              ]
---                 ++ repoAttrs
---                 ++ buttonAttrs
---             )
---             { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
---         , link
---             ([ Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
---              , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
---              ]
---                 ++ devAttrs
---                 ++ buttonAttrs
---             )
---             { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
---         ]
+-- MODEL
+
+
+type alias Model =
+    {}
+
+
+
+-- MESSAGE
+
+
+type alias Msg =
+    {}
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update _ model =
+    ( model, Cmd.none )
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( {}, Cmd.none )
+
+
+
+-- VIEWS
+
+
+view : PageConfig msg -> MainLayout.PageData msg -> Model -> Document msg
+view config layout model =
+    MainLayout.view
+        { toMsg = layout.toMsg
+        , content = viewContent config model
+        }
+        layout.authState
+        layout.model
+
+
+viewContent : PageConfig msg -> Model -> MainLayout.ViewData msg
+viewContent config _ =
+    { title = Just <| "Trending " ++ config.page.title ++ " from Angola"
+    , top = Just <| headerView config
+    , main = Just <| mainSectionView config
+    }
+
+
+headerView : PageConfig msg -> Element msg
+headerView config =
+    Areas.headerView
+        { title = config.page.title
+        , subTitle = Just config.page.subTitle
+        }
+
+
+mainSectionView : PageConfig msg -> Element msg
+mainSectionView config =
+    let
+        header =
+            row
+                [ centerY, width fill ]
+                [ navigationButtons config
+                , Maybe.withDefault none config.page.filter
+                ]
+
+        body =
+            config.page.body
+    in
+    Areas.boxView
+        { header = header
+        , body = body
+        }
+
+
+navigationButtons : PageConfig msg -> Element msg
+navigationButtons config =
+    let
+        repoAttrs =
+            case config.page.page of
+                Repositories ->
+                    [ Font.color <| rgb255 255 255 255
+                    , Border.color <| rgb255 225 228 232
+                    , Background.color <| rgb255 3 102 214
+                    ]
+
+                _ ->
+                    [ Font.color <| rgb255 88 96 105
+                    , Border.color <| rgb255 225 228 232
+                    ]
+
+        devAttrs =
+            case config.page.page of
+                Developers ->
+                    [ Font.color <| rgb255 255 255 255
+                    , Border.color <| rgb255 225 228 232
+                    , Background.color <| rgb255 3 102 214
+                    ]
+
+                _ ->
+                    [ Font.color <| rgb255 88 96 105
+                    , Border.color <| rgb255 225 228 232
+                    ]
+
+        buttonAttrs =
+            [ centerX
+            , centerY
+            , height fill
+            , width fill
+            , paddingXY 14 6
+            ]
+    in
+    row
+        [ height <| px 34
+        , Font.size 14
+        , Font.semiBold
+        ]
+        [ link
+            ([ Border.widthEach { top = 1, bottom = 1, left = 1, right = 0 }
+             , Border.roundEach { topLeft = 3, bottomLeft = 3, topRight = 0, bottomRight = 0 }
+             ]
+                ++ repoAttrs
+                ++ buttonAttrs
+            )
+            { url = toUrl RepoListRoute, label = el [ centerY ] (text "Repositories") }
+        , link
+            ([ Border.widthEach { top = 1, bottom = 1, left = 0, right = 1 }
+             , Border.roundEach { topLeft = 0, bottomLeft = 0, topRight = 3, bottomRight = 3 }
+             ]
+                ++ devAttrs
+                ++ buttonAttrs
+            )
+            { url = toUrl DevListRoute, label = el [ centerY ] (text "Developers") }
+        ]

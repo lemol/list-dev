@@ -10,7 +10,8 @@ import Element.Font as Font
 import Element.Region as Region
 import Html
 import Html.Attributes exposing (src, style, target)
-import Layout.Main as Layout exposing (LayoutData)
+import Layout.Main as MainLayout
+import Layout.Trending as Layout
 import RemoteData exposing (RemoteData(..))
 import UI.Button exposing (githubTextLink)
 import UI.SelectMenu as SelectMenu
@@ -130,18 +131,19 @@ update msg model =
 -- VIEW
 
 
-view : PageConfig msg -> LayoutData msg -> Model -> Document msg
-view { toMsg } layout model =
+view : PageConfig msg -> MainLayout.PageData msg -> Layout.PageData msg -> Model -> Document msg
+view { toMsg } mainLayout layout model =
     Layout.view
         { toMsg = layout.toMsg
         , page =
-            { title = Just "Developers"
-            , content =
-                body model
-                    |> Element.map toMsg
+            { title = "Developers"
+            , subTitle = "These are the developers based in Angola building the hot tools on Github."
+            , page = Layout.Developers
+            , filter = filterView model |> (Element.map toMsg >> Just)
+            , body = body model |> Element.map toMsg
             }
         }
-        layout.authState
+        mainLayout
         layout.model
 
 

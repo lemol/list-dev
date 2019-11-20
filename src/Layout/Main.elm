@@ -1,4 +1,4 @@
-module Layout.Main exposing (LayoutConfig, LayoutData, Model, Msg, ViewData, init, update, view)
+module Layout.Main exposing (Model, Msg, PageConfig, PageData, ViewData, init, update, view)
 
 import Data.App as App exposing (AuthState(..), Document, User)
 import Element exposing (..)
@@ -19,17 +19,18 @@ import Routing exposing (Route(..))
 
 type alias ViewData msg =
     { title : Maybe String
-    , content : Element msg
+    , top : Maybe (Element msg)
+    , main : Maybe (Element msg)
     }
 
 
-type alias LayoutConfig msg =
+type alias PageConfig msg =
     { toMsg : Msg -> msg
-    , page : ViewData msg
+    , content : ViewData msg
     }
 
 
-type alias LayoutData msg =
+type alias PageData msg =
     { toMsg : Msg -> msg
     , model : Model
     , authState : AuthState
@@ -42,11 +43,6 @@ type alias LayoutData msg =
 
 type alias Model =
     { userMenuOpen : Bool }
-
-
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { userMenuOpen = False }, Cmd.none )
 
 
 
@@ -76,15 +72,20 @@ update msg model =
             ( { model | userMenuOpen = open }, Cmd.none )
 
 
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { userMenuOpen = False }, Cmd.none )
+
+
 
 -- VIEWS
 
 
-view : LayoutConfig msg -> AuthState -> Model -> Document msg
-view { page, toMsg } authState model =
+view : PageConfig msg -> AuthState -> Model -> Document msg
+view { content, toMsg } authState model =
     let
         title =
-            Maybe.withDefault "GithubAO" page.title
+            Maybe.withDefault "GithubAO" content.title
 
         body =
             column
@@ -93,7 +94,10 @@ view { page, toMsg } authState model =
                 ]
                 [ headerView model.userMenuOpen authState
                     |> Element.map toMsg
-                , page.content
+                , content.top
+                    |> Maybe.withDefault Element.none
+                , content.main
+                    |> Maybe.withDefault Element.none
                 ]
     in
     { title = title
