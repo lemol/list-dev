@@ -3,6 +3,7 @@ module Data.Developer exposing (Developer, DeveloperListWebData, Language, Langu
 import Http
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..), WebData)
+import Url exposing (percentEncode)
 
 
 
@@ -167,7 +168,7 @@ languageFilterToQueryString filter =
             ""
 
         Just str ->
-            "+language:" ++ str
+            "+language:" ++ percentEncode str
 
 
 fetchDeveloperList : Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
