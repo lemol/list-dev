@@ -1,5 +1,6 @@
 module UI.SelectMenu exposing (Msg(..), State, UpdaterConfig, init, update, updateState, view)
 
+import Data.App exposing (responsive)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -25,6 +26,7 @@ type alias SelectMenuConfig value msg =
     , toString : value -> String
     , showFilter : Bool
     , model : State value
+    , device : Device
     , toMsg : Msg value -> msg
     }
 
@@ -149,11 +151,14 @@ update config msg model =
 
 
 view : List (Attribute msg) -> SelectMenuConfig value msg -> Element msg
-view attrs ({ title, defaultText, toString, model, toMsg } as config) =
+view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
     let
         openAttrs =
             if model.open then
-                [ below (listDropdownBody config)
+                [ responsive device
+                    { desktop = below (listDropdownBody config)
+                    , phone = below (listDropdownBody config)
+                    }
                     |> Element.mapAttribute toMsg
                 ]
 
@@ -195,7 +200,7 @@ view attrs ({ title, defaultText, toString, model, toMsg } as config) =
 
 
 listDropdownBody : SelectMenuConfig value msg -> Element (Msg value)
-listDropdownBody { description, options, toString, model, showFilter } =
+listDropdownBody { description, options, toString, model, showFilter, device } =
     let
         listTitle =
             el
@@ -301,8 +306,14 @@ listDropdownBody { description, options, toString, model, showFilter } =
                     (text <| toString value)
     in
     el
-        [ paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
-        , Element.alignRight
+        [ responsive device
+            { desktop = paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
+            , phone = moveLeft 12
+            }
+        , responsive device
+            { desktop = Element.alignRight
+            , phone = Element.alignLeft
+            }
         ]
     <|
         column

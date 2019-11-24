@@ -1,6 +1,6 @@
-port module Data.App exposing (AppData, AuthState(..), Document, User, authStateDecoder, requestLogin, requestLogout, userDecoder)
+port module Data.App exposing (AppData, AuthState(..), Document, User, authStateDecoder, requestLogin, requestLogout, responsive, userDecoder)
 
-import Element exposing (Device, Element)
+import Element exposing (Device, DeviceClass(..), Element)
 import Json.Decode as D exposing (string)
 
 
@@ -65,3 +65,17 @@ authStateDecoder =
             D.map Authenticated userDecoder
     in
     D.oneOf [ notAuthenticated, authenticated ]
+
+
+
+-- UTILS
+
+
+responsive : Device -> { x | phone : a, desktop : a } -> a
+responsive device { phone, desktop } =
+    case device.class of
+        Phone ->
+            phone
+
+        _ ->
+            desktop

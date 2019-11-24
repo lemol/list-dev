@@ -1,8 +1,6 @@
 module Pages.DeveloperList exposing (Model, Msg, init, update, view)
 
--- import Layout.Trending as Layout
-
-import Data.App exposing (Document)
+import Data.App exposing (AppData, Document, responsive)
 import Data.Developer exposing (..)
 import Element exposing (..)
 import Element.Border as Border
@@ -139,30 +137,28 @@ view { toMsg } mainLayout layout model =
             { title = "Developers"
             , subTitle = "These are the developers based in Angola building the hot tools on Github."
             , page = Layout.Developers
-            , filter = filterView model |> (Element.map toMsg >> Just)
-            , body = body model |> Element.map toMsg
+            , filter = filterView mainLayout.app model |> (Element.map toMsg >> Just)
+            , body = body mainLayout.app.device model |> Element.map toMsg
             }
         }
         mainLayout
         layout.model
 
 
-
--- view : Model -> Document Msg
--- view model =
---     Layout.view
---         { title = "Developers"
---         , subTitle = "These are the developers based in Angola building the hot tools on Github."
---         , page = Layout.Developers
---         , filter = Just <| filterView model
---         , body = body model
---         }
-
-
-filterView : Model -> Element Msg
-filterView model =
-    row
-        [ alignRight, spacing 32 ]
+filterView : AppData -> Model -> Element Msg
+filterView { device } model =
+    let
+        container =
+            responsive device
+                { phone = column
+                , desktop = wrappedRow
+                }
+    in
+    container
+        [ responsive device
+            { phone = alignLeft, desktop = alignRight }
+        , spacingXY 32 16
+        ]
         [ SelectMenu.view
             []
             { title = "Language:"
@@ -173,6 +169,7 @@ filterView model =
             , showFilter = True
             , model = model.languageSelectMenu
             , toMsg = LanguageSelectMsg
+            , device = device
             }
         , SelectMenu.view
             []
@@ -184,18 +181,19 @@ filterView model =
             , showFilter = False
             , model = model.sortSelectMenu
             , toMsg = SortSelectMsg
+            , device = device
             }
         ]
 
 
-body : Model -> Element Msg
-body model =
+body : Device -> Model -> Element Msg
+body device model =
     case model.developers of
         Success [] ->
             emptyListView model.language
 
         Success developers ->
-            developerListView developers
+            developerListView device developers
 
         Failure _ ->
             text "Something is wrong :("
@@ -213,18 +211,17 @@ emptyListView language =
         lang =
             Maybe.withDefault "Any Language" language
     in
-    textColumn
+    column
         [ centerX
         , centerY
         , padding 32
-        , height <| px 146
         , spacing 4
         , Font.color <| rgb255 0x24 0x29 0x2E
         ]
         [ paragraph
             [ Region.heading 3
             , Font.center
-            , Font.bold
+            , Font.semiBold
             , Font.size 20
             ]
             [ text <| "It looks like there is not any developer in Angola for " ++ lang ++ "." ]
@@ -233,41 +230,34 @@ emptyListView language =
             , Font.size 14
             , Font.center
             ]
-            [ row
-                []
-                [ text <| "If you "
-                , link
-                    [ Font.color <| rgb255 3 102 214 ]
-                    { url = "https://github.com/new"
-                    , label =
-                        row
-                            []
-                            [ text "you create an "
-                            , el [ Font.bold ] (text lang)
-                            , text " repository"
-                            ]
-                    }
-                , text <| ", you can really own the place."
-                ]
+            [ text <| "If you "
+            , link
+                [ Font.color <| rgb255 3 102 214 ]
+                { url = "https://github.com/new"
+                , label =
+                    text <| "you create an " ++ lang
+                }
+            , text <| ", you can really own the place."
             ]
         , paragraph
             [ Font.center
             , Font.size 14
             ]
-            [ el [ centerX ] <| text "We’d even let it slide if you started calling yourself the mayor." ]
+            [ text "We’d even let it slide if you started calling yourself the mayor." ]
         ]
 
 
-developerListView : List Developer -> Element Msg
-developerListView =
-    List.indexedMap developerListItemView >> column [ width fill ]
+developerListView : Device -> List Developer -> Element Msg
+developerListView device =
+    List.indexedMap (developerListItemView device) >> column [ width fill ]
 
 
-developerListItemView : Int -> Developer -> Element Msg
-developerListItemView count developer =
-    row
+developerListItemView : Device -> Int -> Developer -> Element Msg
+developerListItemView device count developer =
+    wrappedRow
         [ width fill
         , padding 16
+        , spacing 8
         , Border.color <| rgb255 209 213 218
         , Border.widthEach
             { bottom = 0
@@ -281,57 +271,58 @@ developerListItemView count developer =
             , right = 0
             }
         ]
-        [ row
-            [ spacing 12
-            , alignTop
-            , width (fill |> minimum 300)
+        [ el
+            [ Font.size 32
+            , Font.color <| rgb255 88 96 105
             ]
-            [ el
-                [ Font.size 32
-                , Font.color <| rgb255 88 96 105
-                ]
-                (text <| String.fromInt (count + 1))
-            , link
+            (text <| String.fromInt (count + 1))
+        , link
+            [ htmlAttribute <| target "_blank" ]
+            { url = developer.htmlUrl
+            , label =
+                el
+                    [ width fill
+                    , spacing 12
+                    ]
+                <|
+                    html <|
+                        Html.img
+                            [ style "width" "48px"
+                            , style "height" "52px"
+                            , style "border-radius" "3px"
+                            , style "border-width" "1px"
+                            , src developer.avatar
+                            ]
+                            []
+            }
+        , responsive device
+            { desktop = wrappedRow, phone = column }
+            [ width fill
+            , spacing 8
+            ]
+            [ link
                 [ htmlAttribute <| target "_blank" ]
                 { url = developer.htmlUrl
                 , label =
-                    row
-                        [ width fill
-                        , spacing 12
-                        ]
-                        [ el [] <|
-                            html <|
-                                Html.img
-                                    [ style "width" "48px"
-                                    , style "height" "52px"
-                                    , style "border-radius" "3px"
-                                    , style "border-width" "1px"
-                                    , src developer.avatar
-                                    ]
-                                    []
-                        , column
-                            [ spacing 4 ]
-                            [ el
-                                [ Font.size 20
-                                , Font.bold
-                                , Font.color <| rgb255 3 102 214
-                                ]
-                                (text developer.name)
-                            , el
-                                [ Font.size 16
-                                , Font.color <| rgb255 88 96 105
-                                , mouseOver [ Font.color <| rgb255 3 102 214 ]
-                                ]
-                                (text developer.login)
+                    column
+                        [ spacing 4 ]
+                        [ el
+                            [ Font.size 20
+                            , Font.bold
+                            , Font.color <| rgb255 3 102 214
                             ]
+                            (text developer.name)
+                        , el
+                            [ Font.size 16
+                            , Font.color <| rgb255 88 96 105
+                            , mouseOver [ Font.color <| rgb255 3 102 214 ]
+                            ]
+                            (text developer.login)
                         ]
                 }
+            , popularRepoView developer
+            , el [ responsive device { desktop = alignRight, phone = alignLeft } ] (githubTextLink developer.htmlUrl "Profile")
             ]
-        , popularRepoView developer
-        , row
-            [ width fill
-            ]
-            [ el [ alignRight ] (githubTextLink developer.htmlUrl "Profile") ]
         ]
 
 

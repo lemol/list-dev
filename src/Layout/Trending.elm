@@ -1,6 +1,6 @@
 module Layout.Trending exposing (Model, Msg, PageConfig, PageData, TrendingPage(..), ViewData, init, update, view)
 
-import Data.App exposing (Document)
+import Data.App exposing (AppData, Document)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -78,17 +78,17 @@ view : PageConfig msg -> MainLayout.PageData msg -> Model -> Document msg
 view config layout model =
     MainLayout.view
         { toMsg = layout.toMsg
-        , content = viewContent config model
+        , content = viewContent config layout.app model
         }
         layout.app
         layout.model
 
 
-viewContent : PageConfig msg -> Model -> MainLayout.ViewData msg
-viewContent config _ =
+viewContent : PageConfig msg -> AppData -> Model -> MainLayout.ViewData msg
+viewContent config { device } _ =
     { title = Just <| "Trending " ++ config.page.title ++ " from Angola"
     , top = Just <| headerView config
-    , main = Just <| mainSectionView config
+    , main = Just <| mainSectionView config device
     }
 
 
@@ -100,12 +100,12 @@ headerView config =
         }
 
 
-mainSectionView : PageConfig msg -> Element msg
-mainSectionView config =
+mainSectionView : PageConfig msg -> Device -> Element msg
+mainSectionView config device =
     let
         header =
-            row
-                [ centerY, width fill ]
+            wrappedRow
+                [ centerY, width fill, spacingXY 0 12 ]
                 [ navigationButtons config
                 , Maybe.withDefault none config.page.filter
                 ]
@@ -116,6 +116,7 @@ mainSectionView config =
     Areas.boxView
         { header = header
         , body = body
+        , device = device
         }
 
 

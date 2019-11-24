@@ -72,18 +72,17 @@ view { toMsg } mainLayout layout _ =
 
 body : Element Msg
 body =
-    textColumn
+    column
         [ centerX
         , centerY
         , padding 32
-        , height <| px 146
         , spacing 4
         , Font.color <| rgb255 0x24 0x29 0x2E
         ]
         [ paragraph
             [ Region.heading 3
             , Font.center
-            , Font.bold
+            , Font.semiBold
             , Font.size 20
             ]
             [ text "Get to know the Open Source community from Angola" ]
@@ -91,15 +90,12 @@ body =
             [ Font.center
             , Font.size 14
             ]
-            [ row
-                []
-                [ text <| "Check the "
-                , link
-                    [ Font.color <| rgb255 3 102 214 ]
-                    { url = "/developers"
-                    , label = text "developer list"
-                    }
-                , text <| " to see what they are building."
-                ]
+            [ text "Check the "
+            , link
+                [ Font.color <| rgb255 3 102 214 ]
+                { url = "/developers"
+                , label = text "developer list"
+                }
+            , text " to see what they are building."
             ]
         ]

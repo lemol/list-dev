@@ -9,6 +9,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Html
 import Html.Attributes exposing (src, style, target)
+import UI.Icon as Icons
 
 
 
@@ -80,7 +81,7 @@ init _ =
 
 
 view : PageConfig msg -> AppData -> Model -> Document msg
-view { content, toMsg } { auth } model =
+view { content, toMsg } app model =
     let
         title =
             Maybe.withDefault "GithubAO" content.title
@@ -90,7 +91,7 @@ view { content, toMsg } { auth } model =
                 [ height fill
                 , width fill
                 ]
-                [ headerView model.userMenuOpen auth
+                [ headerView model.userMenuOpen app
                     |> Element.map toMsg
                 , content.top
                     |> Maybe.withDefault Element.none
@@ -103,8 +104,8 @@ view { content, toMsg } { auth } model =
     }
 
 
-headerView : Bool -> AuthState -> Element Msg
-headerView open authState =
+viewHeaderDesktop : Bool -> AuthState -> Element Msg
+viewHeaderDesktop open authState =
     let
         logo =
             el
@@ -140,6 +141,59 @@ headerView open authState =
             [ leftContent
             , right
             ]
+
+
+viewHeaderMobile : Bool -> AuthState -> Element Msg
+viewHeaderMobile open authState =
+    let
+        logo =
+            el
+                [ Font.bold
+                , Font.color <| rgb255 255 255 255
+                ]
+                (text "GithubAO")
+
+        center =
+            logo
+
+        leftContent =
+            row
+                [ Font.color <| rgb255 255 255 255
+                ]
+                [ html Icons.threeBarsIcon
+                ]
+
+        right =
+            el
+                [ alignRight ]
+                (rightContent open authState)
+    in
+    el
+        [ width fill
+        , height <| px 64
+        , Background.color <| rgb255 36 41 46
+        ]
+    <|
+        row
+            [ centerY
+            , padding 16
+            , height fill
+            , width fill
+            ]
+            [ leftContent
+            , center
+            , right
+            ]
+
+
+headerView : Bool -> AppData -> Element Msg
+headerView open app =
+    case app.device.class of
+        Phone ->
+            viewHeaderMobile open app.auth
+
+        _ ->
+            viewHeaderDesktop open app.auth
 
 
 rightContent : Bool -> AuthState -> Element Msg

@@ -1,5 +1,6 @@
 module UI.Areas exposing (boxView, headerView)
 
+import Data.App exposing (responsive)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -13,11 +14,10 @@ headerView config =
         title =
             el
                 [ centerX
-                , padding 12
                 , Font.size 40
                 , Font.color <| rgb255 6 41 46
                 , htmlAttribute <|
-                    style "font-weight" "300"
+                    style "font-weight" "400"
                 ]
                 (text config.title)
 
@@ -46,19 +46,21 @@ headerView config =
         column
             [ centerX
             , centerY
+            , paddingXY 16 40
+            , spacing 12
             ]
             [ title
             , subTitle
             ]
 
 
-boxView : { a | header : Element msg, body : Element msg } -> Element msg
+boxView : { a | header : Element msg, body : Element msg, device : Device } -> Element msg
 boxView config =
     let
         header =
             el
                 [ width fill
-                , height <| px 64
+                , height shrink
                 , Background.color <| rgb255 246 248 250
                 , Border.color <| rgb255 209 213 218
                 , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
@@ -76,7 +78,10 @@ boxView config =
     in
     el
         [ width fill
-        , paddingXY 42 40
+        , responsive config.device
+            { desktop = paddingXY 42 40
+            , phone = paddingXY 16 40
+            }
         ]
     <|
         column
