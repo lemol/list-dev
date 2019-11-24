@@ -268,7 +268,7 @@ listDropdownBody { description, options, toString, model, showFilter, device } =
                                 , padding 8
                                 , Font.color <| rgb255 255 0 0
                                 ]
-                                (html checkIcon)
+                                (checkIcon [])
                         ]
 
         itemButton index value =

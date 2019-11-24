@@ -9,6 +9,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Html
 import Html.Attributes exposing (src, style, target)
+import Svg.Attributes as SvgAttr
 import UI.Icon as Icons
 
 
@@ -154,13 +155,15 @@ viewHeaderMobile open authState =
                 (text "GithubAO")
 
         center =
-            logo
+            el
+                [ centerX ]
+                logo
 
         leftContent =
             row
                 [ Font.color <| rgb255 255 255 255
                 ]
-                [ html Icons.threeBarsIcon
+                [ Icons.threeBarsIcon [ SvgAttr.fill "#FFFFFF" ]
                 ]
 
         right =
