@@ -1,11 +1,12 @@
 module Pages.RepositoryList exposing (Model, Msg(..), init, update, view)
 
-import Data.App exposing (Document)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Region as Region
+import Global
 import Layout.Main as MainLayout
 import Layout.Trending as Layout
+import UI exposing (Document)
 
 
 
@@ -13,7 +14,10 @@ import Layout.Trending as Layout
 
 
 type alias PageConfig msg =
-    { toMsg : Msg -> msg }
+    { toMsg : Msg -> msg
+    , layoutToMsg : Layout.Msg -> msg
+    , mainLayoutToMsg : MainLayout.Msg -> msg
+    }
 
 
 
@@ -43,35 +47,37 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )
 
 
 
 -- VIEW
 
 
-view : PageConfig msg -> MainLayout.PageData msg -> Layout.PageData msg -> Model -> Document msg
-view { toMsg } mainLayout layout _ =
+view : PageConfig msg -> MainLayout.Model -> Layout.Model -> Global.Model -> Model -> Document msg
+view config mainLayoutModel layoutModel global model =
     Layout.view
-        { toMsg = layout.toMsg
+        { toMsg = config.layoutToMsg
+        , mainLayoutToMsg = config.mainLayoutToMsg
         , page =
             { title = "Repositories"
             , subTitle = "See what the GitHub community from Angola is most excited about."
             , page = Layout.Repositories
             , filter = Nothing
-            , body = body |> Element.map toMsg
+            , body = body global model |> Element.map config.toMsg
             }
         }
-        mainLayout
-        layout.model
+        mainLayoutModel
+        global
+        layoutModel
 
 
-body : Element Msg
-body =
+body : Global.Model -> Model -> Element Msg
+body _ _ =
     column
         [ centerX
         , centerY

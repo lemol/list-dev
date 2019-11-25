@@ -1,15 +1,16 @@
-module Layout.Main exposing (Model, Msg, PageConfig, PageData, ViewData, init, update, view)
+module Layout.Main exposing (Model, Msg, PageConfig, ViewData, init, update, view)
 
-import Data.App as App exposing (AppData, AuthState(..), Document, User)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Global exposing (AuthState(..), User)
 import Html
 import Html.Attributes exposing (src, style, target)
 import Svg.Attributes as SvgAttr
+import UI exposing (Document)
 import UI.Icon as Icons
 
 
@@ -27,13 +28,6 @@ type alias ViewData msg =
 type alias PageConfig msg =
     { toMsg : Msg -> msg
     , content : ViewData msg
-    }
-
-
-type alias PageData msg =
-    { toMsg : Msg -> msg
-    , model : Model
-    , app : AppData
     }
 
 
@@ -63,10 +57,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Login ->
-            ( model, App.requestLogin () )
+            ( model, Global.requestLogin () )
 
         Logout ->
-            ( model, App.requestLogout () )
+            ( model, Global.requestLogout () )
 
         ToggleUserMenu open ->
             ( { model | userMenuOpen = open }, Cmd.none )
@@ -81,8 +75,8 @@ init _ =
 -- VIEWS
 
 
-view : PageConfig msg -> AppData -> Model -> Document msg
-view { content, toMsg } app model =
+view : PageConfig msg -> Global.Model -> Model -> Document msg
+view { content, toMsg } global model =
     let
         title =
             Maybe.withDefault "GithubAO" content.title
@@ -92,7 +86,7 @@ view { content, toMsg } app model =
                 [ height fill
                 , width fill
                 ]
-                [ headerView model.userMenuOpen app
+                [ headerView model.userMenuOpen global
                     |> Element.map toMsg
                 , content.top
                     |> Maybe.withDefault Element.none
@@ -189,14 +183,14 @@ viewHeaderMobile open authState =
             ]
 
 
-headerView : Bool -> AppData -> Element Msg
-headerView open app =
-    case app.device.class of
+headerView : Bool -> Global.Model -> Element Msg
+headerView open global =
+    case global.device.class of
         Phone ->
-            viewHeaderMobile open app.auth
+            viewHeaderMobile open global.auth
 
         _ ->
-            viewHeaderDesktop open app.auth
+            viewHeaderDesktop open global.auth
 
 
 rightContent : Bool -> AuthState -> Element Msg

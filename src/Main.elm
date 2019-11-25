@@ -1,24 +1,15 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Browser
-import Browser.Events
 import Browser.Navigation as Navigation
-import Data.App exposing (AppData, AuthState(..), authStateDecoder)
 import Element exposing (..)
 import Element.Font as Font
-import Json.Decode as D
-import Json.Encode as E
+import Global
 import Page
 import Routing exposing (parseUrl)
+import UI.Modal as Modal
 import Url
 import Url.Parser exposing (map)
-
-
-
--- PORTS
-
-
-port setAuthState : (E.Value -> msg) -> Sub msg
 
 
 
@@ -27,15 +18,13 @@ port setAuthState : (E.Value -> msg) -> Sub msg
 
 type alias Model =
     { page : Page.Model
-    , app : AppData
+    , global : Global.Model
     , key : Navigation.Key
     }
 
 
 type alias Flags =
-    { width : Int
-    , height : Int
-    }
+    Global.Flags
 
 
 
@@ -43,12 +32,10 @@ type alias Flags =
 
 
 type Msg
-    = NoOp
-    | LinkClicked Browser.UrlRequest
+    = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | PageMsg Page.Msg
-    | SetAuthState AuthState
-    | WindowResized Int Int
+    | GlobalMsg Global.Msg
 
 
 
@@ -76,19 +63,20 @@ init flags url key =
         ( pageModel, pageCmd ) =
             Page.init () route
 
+        ( globalModel, globalCmd ) =
+            Global.init flags
+
         model =
             { page = pageModel
+            , global = globalModel
             , key = key
-            , app =
-                { auth = IDLE
-                , device =
-                    device flags.width flags.height
-                }
             }
     in
     ( model
     , Cmd.batch
-        [ Cmd.map PageMsg pageCmd ]
+        [ Cmd.map PageMsg pageCmd
+        , Cmd.map GlobalMsg globalCmd
+        ]
     )
 
 
@@ -99,9 +87,6 @@ init flags url key =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
@@ -127,23 +112,36 @@ update msg model =
                 [ Cmd.map PageMsg newPageCmd ]
             )
 
-        SetAuthState authState ->
-            ( { model | app = updateAppAuth model.app authState }
-            , Cmd.none
-            )
-
-        WindowResized w h ->
-            ( { model | app = updateAppDevice model.app w h }
-            , Cmd.none
-            )
-
         PageMsg subMsg ->
             let
-                ( newPageModel, newPageCmd ) =
+                ( newPageModel, newPageCmd, globalMsg_ ) =
                     Page.update subMsg model.page
+
+                pageUpdated =
+                    { model | page = newPageModel }
+
+                ( newModel, newCmd ) =
+                    case globalMsg_ of
+                        Nothing ->
+                            ( pageUpdated, Cmd.none )
+
+                        Just globalMsg ->
+                            update (GlobalMsg globalMsg) pageUpdated
             in
-            ( { model | page = newPageModel }
-            , Cmd.map PageMsg newPageCmd
+            ( newModel
+            , Cmd.batch
+                [ Cmd.map PageMsg newPageCmd
+                , newCmd
+                ]
+            )
+
+        GlobalMsg subMsg ->
+            let
+                ( newGlobalModel, newGlobalCmd ) =
+                    Global.update subMsg model.global
+            in
+            ( { model | global = newGlobalModel }
+            , Cmd.map GlobalMsg newGlobalCmd
             )
 
 
@@ -152,10 +150,9 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
-        [ setAuthState (D.decodeValue authStateDecoder >> Result.map SetAuthState >> Result.withDefault NoOp)
-        , Browser.Events.onResize WindowResized
+        [ Sub.map GlobalMsg (Global.subscriptions model.global)
         ]
 
 
@@ -167,13 +164,15 @@ view : Model -> Browser.Document Msg
 view model =
     let
         page =
-            Page.view model.app model.page
+            Page.view model.global model.page
 
         body =
             layout
                 [ Font.family mainFontFamily
                 , width fill
                 , height fill
+                , inFront (Modal.view model.global.modal)
+                    |> Element.mapAttribute (Global.ModalMsg >> GlobalMsg)
                 ]
                 (Element.map PageMsg page.body)
     in
@@ -194,25 +193,3 @@ mainFontFamily =
         , "Apple Color Emoji"
         , "Segoe UI Emoji"
         ]
-
-
-
--- UTILS
-
-
-updateAppAuth : AppData -> AuthState -> AppData
-updateAppAuth app auth =
-    { app | auth = auth }
-
-
-updateAppDevice : AppData -> Int -> Int -> AppData
-updateAppDevice app width height =
-    { app | device = device width height }
-
-
-device : Int -> Int -> Device
-device width height =
-    classifyDevice
-        { width = width
-        , height = height
-        }

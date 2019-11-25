@@ -1,12 +1,13 @@
-module Layout.Trending exposing (Model, Msg, PageConfig, PageData, TrendingPage(..), ViewData, init, update, view)
+module Layout.Trending exposing (Model, Msg, PageConfig, TrendingPage(..), ViewData, init, update, view)
 
-import Data.App exposing (AppData, Document)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Global
 import Layout.Main as MainLayout
 import Routing exposing (Route(..), toUrl)
+import UI exposing (Document)
 import UI.Areas as Areas
 
 
@@ -30,13 +31,8 @@ type alias ViewData msg =
 
 type alias PageConfig msg =
     { toMsg : Msg -> msg
+    , mainLayoutToMsg : MainLayout.Msg -> msg
     , page : ViewData msg
-    }
-
-
-type alias PageData msg =
-    { toMsg : Msg -> msg
-    , model : Model
     }
 
 
@@ -74,17 +70,17 @@ init =
 -- VIEWS
 
 
-view : PageConfig msg -> MainLayout.PageData msg -> Model -> Document msg
-view config layout model =
+view : PageConfig msg -> MainLayout.Model -> Global.Model -> Model -> Document msg
+view config layoutModel global model =
     MainLayout.view
-        { toMsg = layout.toMsg
-        , content = viewContent config layout.app model
+        { toMsg = config.mainLayoutToMsg
+        , content = viewContent config global model
         }
-        layout.app
-        layout.model
+        global
+        layoutModel
 
 
-viewContent : PageConfig msg -> AppData -> Model -> MainLayout.ViewData msg
+viewContent : PageConfig msg -> Global.Model -> Model -> MainLayout.ViewData msg
 viewContent config { device } _ =
     { title = Just <| "Trending " ++ config.page.title ++ " from Angola"
     , top = Just <| headerView config

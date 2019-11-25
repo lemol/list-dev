@@ -1,6 +1,5 @@
 module UI.SelectMenu exposing (Msg(..), State, UpdaterConfig, init, update, updateState, view)
 
-import Data.App exposing (responsive)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -11,6 +10,7 @@ import Html.Attributes
 import Html.Events
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..))
+import UI exposing (responsive)
 import UI.Icon exposing (checkIcon)
 
 

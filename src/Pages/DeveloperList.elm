@@ -1,16 +1,17 @@
 module Pages.DeveloperList exposing (Model, Msg, init, update, view)
 
-import Data.App exposing (AppData, Document, responsive)
 import Data.Developer exposing (..)
 import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
+import Global
 import Html
 import Html.Attributes exposing (src, style, target)
 import Layout.Main as MainLayout
 import Layout.Trending as Layout
 import RemoteData exposing (RemoteData(..))
+import UI exposing (Document, responsive)
 import UI.Button exposing (githubTextLink)
 import UI.SelectMenu as SelectMenu
 
@@ -20,7 +21,10 @@ import UI.SelectMenu as SelectMenu
 
 
 type alias PageConfig msg =
-    { toMsg : Msg -> msg }
+    { toMsg : Msg -> msg
+    , layoutToMsg : Layout.Msg -> msg
+    , mainLayoutToMsg : MainLayout.Msg -> msg
+    }
 
 
 
@@ -77,7 +81,7 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
 update msg model =
     case msg of
         ChangeSort newSort ->
@@ -90,16 +94,19 @@ update msg model =
             ( model
               -- Set Loading state??
             , fetchDeveloperList model.sort model.language FetchDeveloperListResponse
+            , Nothing
             )
 
         FetchDeveloperListResponse response ->
             ( { model | developers = response }
             , Cmd.none
+            , Nothing
             )
 
         FetchLanguageListResponse response ->
             ( { model | languages = response }
             , Cmd.none
+            , Nothing
             )
 
         SortSelectMsg subMsg ->
@@ -108,10 +115,11 @@ update msg model =
                 , changeFilter = Nothing
                 , getter = .sortSelectMenu
                 , setter = \m s -> { m | sortSelectMenu = s }
-                , update = update
+                , update = Global.withNoGlobal update
                 }
                 subMsg
                 model
+                |> Global.withNoOp
 
         LanguageSelectMsg subMsg ->
             SelectMenu.updateState
@@ -119,33 +127,36 @@ update msg model =
                 , changeFilter = Nothing
                 , getter = .languageSelectMenu
                 , setter = \m s -> { m | languageSelectMenu = s }
-                , update = update
+                , update = Global.withNoGlobal update
                 }
                 subMsg
                 model
+                |> Global.withNoOp
 
 
 
 -- VIEW
 
 
-view : PageConfig msg -> MainLayout.PageData msg -> Layout.PageData msg -> Model -> Document msg
-view { toMsg } mainLayout layout model =
+view : PageConfig msg -> MainLayout.Model -> Layout.Model -> Global.Model -> Model -> Document msg
+view config mainLayoutModel layoutModel global model =
     Layout.view
-        { toMsg = layout.toMsg
+        { toMsg = config.layoutToMsg
+        , mainLayoutToMsg = config.mainLayoutToMsg
         , page =
             { title = "Developers"
             , subTitle = "These are the developers based in Angola building the hot tools on Github."
             , page = Layout.Developers
-            , filter = filterView mainLayout.app model |> (Element.map toMsg >> Just)
-            , body = body mainLayout.app.device model |> Element.map toMsg
+            , filter = filterView global model |> (Element.map config.toMsg >> Just)
+            , body = body global model |> Element.map config.toMsg
             }
         }
-        mainLayout
-        layout.model
+        mainLayoutModel
+        global
+        layoutModel
 
 
-filterView : AppData -> Model -> Element Msg
+filterView : Global.Model -> Model -> Element Msg
 filterView { device } model =
     let
         container =
@@ -186,8 +197,8 @@ filterView { device } model =
         ]
 
 
-body : Device -> Model -> Element Msg
-body device model =
+body : Global.Model -> Model -> Element Msg
+body { device } model =
     case model.developers of
         Success [] ->
             emptyListView model.language

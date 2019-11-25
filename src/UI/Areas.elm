@@ -1,11 +1,11 @@
 module UI.Areas exposing (boxView, headerView)
 
-import Data.App exposing (responsive)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes exposing (style)
+import UI exposing (responsive)
 
 
 headerView : { a | title : String, subTitle : Maybe String } -> Element msg
