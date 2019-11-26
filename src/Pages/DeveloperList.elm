@@ -14,7 +14,7 @@ import RemoteData exposing (RemoteData(..))
 import UI exposing (Document, responsive)
 import UI.Button exposing (githubTextLink)
 import UI.Modal.Data as Modal
-import UI.Modal.Messages exposing (openModal)
+import UI.Modal.Messages exposing (closeModal, openModal)
 import UI.SelectMenu as SelectMenu
 
 
@@ -131,16 +131,20 @@ update msg global model =
                         model
 
                 globalMsg =
-                    if not newModel.sortSelectMenu.open then
-                        Nothing
-
-                    else
-                        case global.device.class of
-                            Phone ->
+                    responsive global.device
+                        { desktop = Nothing
+                        , phone =
+                            if newModel.sortSelectMenu.open then
                                 Just openSortModal
 
-                            _ ->
-                                Nothing
+                            else
+                                case subMsg of
+                                    SelectMenu.SetSelected _ ->
+                                        Just closeModal
+
+                                    _ ->
+                                        Nothing
+                        }
             in
             ( newModel
             , cmd
@@ -167,16 +171,20 @@ update msg global model =
                         model
 
                 globalMsg =
-                    if not newModel.languageSelectMenu.open then
-                        Nothing
-
-                    else
-                        case global.device.class of
-                            Phone ->
+                    responsive global.device
+                        { desktop = Nothing
+                        , phone =
+                            if newModel.languageSelectMenu.open then
                                 Just openLanguageModal
 
-                            _ ->
-                                Nothing
+                            else
+                                case subMsg of
+                                    SelectMenu.SetSelected _ ->
+                                        Just closeModal
+
+                                    _ ->
+                                        Nothing
+                        }
             in
             ( newModel
             , cmd

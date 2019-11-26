@@ -28,22 +28,20 @@ view model =
 
 viewModal : Element Msg -> Model -> Element Msg
 viewModal content _ =
-    column
+    el
         [ width fill
         , height fill
-        , padding 8
-        , Background.color <| rgba255 0x00 0x00 0x00 0.65
-        , Events.onClick (fromModalMsg Modal.Close)
+        , centerX
+        , behindContent <|
+            el
+                [ width fill
+                , height fill
+                , closeOnClick
+                , Background.color <| rgba255 0x00 0x00 0x00 0.65
+                ]
+                Element.none
         ]
-        [ el [ height <| fillPortion 10 ] Element.none
-        , el
-            [ width fill
-            , centerX
-            , height <| fillPortion 80
-            ]
-            content
-        , el [ height <| fillPortion 10 ] Element.none
-        ]
+        content
 
 
 viewDevListSort : Model -> Element Msg
@@ -74,6 +72,11 @@ viewDevListLanguage model =
 
 
 -- UTILS
+
+
+closeOnClick : Attribute Msg
+closeOnClick =
+    Events.onClick (fromModalMsg Modal.Close)
 
 
 fromModalMsg : Modal.Msg -> Msg
