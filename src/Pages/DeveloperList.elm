@@ -81,14 +81,14 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
-update msg model =
+update : Msg -> Global.Model -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
+update msg global model =
     case msg of
         ChangeSort newSort ->
-            update FetchDeveloperList { model | sort = newSort }
+            update FetchDeveloperList global { model | sort = newSort }
 
         ChangeLanguage newLanguage ->
-            update FetchDeveloperList { model | language = newLanguage }
+            update FetchDeveloperList global { model | language = newLanguage }
 
         FetchDeveloperList ->
             ( model
@@ -110,16 +110,40 @@ update msg model =
             )
 
         SortSelectMsg subMsg ->
-            SelectMenu.updateState
-                { changeSelected = Just ChangeSort
-                , changeFilter = Nothing
-                , getter = .sortSelectMenu
-                , setter = \m s -> { m | sortSelectMenu = s }
-                , update = Global.withNoGlobal update
-                }
-                subMsg
-                model
-                |> Global.withNoOp
+            let
+                ( newModel, cmd ) =
+                    SelectMenu.updateState
+                        { changeSelected = Just ChangeSort
+                        , changeFilter = Nothing
+                        , getter = .sortSelectMenu
+                        , setter = \m s -> { m | sortSelectMenu = s }
+                        , update =
+                            \ms md ->
+                                let
+                                    ( nm, cm, _ ) =
+                                        update ms global md
+                                in
+                                ( nm, cm )
+                        }
+                        subMsg
+                        model
+
+                globalMsg =
+                    if not newModel.sortSelectMenu.open then
+                        Nothing
+
+                    else
+                        case global.device.class of
+                            Phone ->
+                                Just Global.openModal
+
+                            _ ->
+                                Nothing
+            in
+            ( newModel
+            , cmd
+            , globalMsg
+            )
 
         LanguageSelectMsg subMsg ->
             SelectMenu.updateState
@@ -127,7 +151,13 @@ update msg model =
                 , changeFilter = Nothing
                 , getter = .languageSelectMenu
                 , setter = \m s -> { m | languageSelectMenu = s }
-                , update = Global.withNoGlobal update
+                , update =
+                    \ms md ->
+                        let
+                            ( nm, cm, _ ) =
+                                update ms global md
+                        in
+                        ( nm, cm )
                 }
                 subMsg
                 model

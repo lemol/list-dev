@@ -2,6 +2,7 @@ module UI.Modal exposing (Model, Msg(..), init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
+import Element.Events as Events
 
 
 
@@ -32,7 +33,7 @@ update msg model =
             ( { model | active = True }, Cmd.none )
 
         Close ->
-            ( { model | active = True }, Cmd.none )
+            ( { model | active = False }, Cmd.none )
 
 
 init : ( Model, Cmd Msg )
@@ -61,5 +62,6 @@ viewModal _ =
         [ width fill
         , height fill
         , Background.color <| rgba255 0x00 0x00 0x00 0.75
+        , Events.onClick Close
         ]
         (text "")

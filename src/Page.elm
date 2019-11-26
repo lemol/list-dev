@@ -52,8 +52,8 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
-update msg model =
+update : Msg -> Global.Model -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
+update msg global model =
     case msg of
         MainLayoutMsg subMsg ->
             let
@@ -85,7 +85,7 @@ update msg model =
             let
                 ( newModel, cmd, globalMsg ) =
                     model.devList
-                        |> Maybe.map (DevList.update subMsg)
+                        |> Maybe.map (DevList.update subMsg global)
                         |> Maybe.map (mapFirst Just)
                         |> Maybe.withDefault ( Nothing, Cmd.none, Nothing )
             in

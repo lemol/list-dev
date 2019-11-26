@@ -157,7 +157,7 @@ view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
             if model.open then
                 [ responsive device
                     { desktop = below (listDropdownBody config)
-                    , phone = below (listDropdownBody config)
+                    , phone = below Element.none
                     }
                     |> Element.mapAttribute toMsg
                 ]

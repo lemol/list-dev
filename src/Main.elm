@@ -115,7 +115,7 @@ update msg model =
         PageMsg subMsg ->
             let
                 ( newPageModel, newPageCmd, globalMsg_ ) =
-                    Page.update subMsg model.page
+                    Page.update subMsg model.global model.page
 
                 pageUpdated =
                     { model | page = newPageModel }
