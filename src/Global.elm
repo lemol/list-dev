@@ -65,16 +65,6 @@ type Msg
     | ModalMsg Modal.Msg
 
 
-openModal : Msg
-openModal =
-    ModalMsg Modal.Open
-
-
-closeModal : Msg
-closeModal =
-    ModalMsg Modal.Close
-
-
 
 -- UPDATE
 

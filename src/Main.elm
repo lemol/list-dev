@@ -5,37 +5,13 @@ import Browser.Navigation as Navigation
 import Element exposing (..)
 import Element.Font as Font
 import Global
+import Main.Messages exposing (Msg(..))
+import Main.Model exposing (Flags, Model)
 import Page
 import Routing exposing (parseUrl)
-import UI.Modal as Modal
+import UI.Modal.View as ModalView
 import Url
 import Url.Parser exposing (map)
-
-
-
--- MODEL
-
-
-type alias Model =
-    { page : Page.Model
-    , global : Global.Model
-    , key : Navigation.Key
-    }
-
-
-type alias Flags =
-    Global.Flags
-
-
-
--- MESSAGE
-
-
-type Msg
-    = LinkClicked Browser.UrlRequest
-    | UrlChanged Url.Url
-    | PageMsg Page.Msg
-    | GlobalMsg Global.Msg
 
 
 
@@ -171,8 +147,7 @@ view model =
                 [ Font.family mainFontFamily
                 , width fill
                 , height fill
-                , inFront (Modal.view model.global.modal)
-                    |> Element.mapAttribute (Global.ModalMsg >> GlobalMsg)
+                , inFront (ModalView.view model)
                 ]
                 (Element.map PageMsg page.body)
     in

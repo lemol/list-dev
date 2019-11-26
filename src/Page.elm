@@ -1,4 +1,4 @@
-module Page exposing (Model, Msg, enterRoute, init, update, view)
+module Page exposing (Model, Msg(..), enterRoute, init, update, view)
 
 import Element exposing (..)
 import Global

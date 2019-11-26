@@ -1,8 +1,6 @@
-module UI.Modal exposing (Model, Msg(..), init, update, view)
+module UI.Modal exposing (Model, Msg(..), init, update)
 
-import Element exposing (..)
-import Element.Background as Background
-import Element.Events as Events
+import UI.Modal.Data exposing (Modal)
 
 
 
@@ -10,7 +8,7 @@ import Element.Events as Events
 
 
 type alias Model =
-    { active : Bool }
+    { active : Maybe Modal }
 
 
 
@@ -18,8 +16,9 @@ type alias Model =
 
 
 type Msg
-    = Open
+    = Open Modal
     | Close
+    | Update Modal
 
 
 
@@ -29,39 +28,18 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Open ->
-            ( { model | active = True }, Cmd.none )
+        Open modal ->
+            ( { model | active = Just modal }, Cmd.none )
 
         Close ->
-            ( { model | active = False }, Cmd.none )
+            ( { model | active = Nothing }, Cmd.none )
+
+        Update modal ->
+            ( { model | active = Just modal }, Cmd.none )
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { active = False }
+    ( { active = Nothing }
     , Cmd.none
     )
-
-
-
--- VIEW
-
-
-view : Model -> Element Msg
-view model =
-    if model.active then
-        viewModal model
-
-    else
-        Element.none
-
-
-viewModal : Model -> Element Msg
-viewModal _ =
-    el
-        [ width fill
-        , height fill
-        , Background.color <| rgba255 0x00 0x00 0x00 0.75
-        , Events.onClick Close
-        ]
-        (text "")

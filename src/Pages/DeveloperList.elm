@@ -1,4 +1,4 @@
-module Pages.DeveloperList exposing (Model, Msg, init, update, view)
+module Pages.DeveloperList exposing (Model, Msg, init, languageMenuPopup, sortMenuPopup, update, view)
 
 import Data.Developer exposing (..)
 import Element exposing (..)
@@ -13,6 +13,8 @@ import Layout.Trending as Layout
 import RemoteData exposing (RemoteData(..))
 import UI exposing (Document, responsive)
 import UI.Button exposing (githubTextLink)
+import UI.Modal.Data as Modal
+import UI.Modal.Messages exposing (openModal)
 import UI.SelectMenu as SelectMenu
 
 
@@ -135,7 +137,7 @@ update msg global model =
                     else
                         case global.device.class of
                             Phone ->
-                                Just Global.openModal
+                                Just openSortModal
 
                             _ ->
                                 Nothing
@@ -146,22 +148,40 @@ update msg global model =
             )
 
         LanguageSelectMsg subMsg ->
-            SelectMenu.updateState
-                { changeSelected = Just ChangeLanguage
-                , changeFilter = Nothing
-                , getter = .languageSelectMenu
-                , setter = \m s -> { m | languageSelectMenu = s }
-                , update =
-                    \ms md ->
-                        let
-                            ( nm, cm, _ ) =
-                                update ms global md
-                        in
-                        ( nm, cm )
-                }
-                subMsg
-                model
-                |> Global.withNoOp
+            let
+                ( newModel, cmd ) =
+                    SelectMenu.updateState
+                        { changeSelected = Just ChangeLanguage
+                        , changeFilter = Nothing
+                        , getter = .languageSelectMenu
+                        , setter = \m s -> { m | languageSelectMenu = s }
+                        , update =
+                            \ms md ->
+                                let
+                                    ( nm, cm, _ ) =
+                                        update ms global md
+                                in
+                                ( nm, cm )
+                        }
+                        subMsg
+                        model
+
+                globalMsg =
+                    if not newModel.languageSelectMenu.open then
+                        Nothing
+
+                    else
+                        case global.device.class of
+                            Phone ->
+                                Just openLanguageModal
+
+                            _ ->
+                                Nothing
+            in
+            ( newModel
+            , cmd
+            , globalMsg
+            )
 
 
 
@@ -187,42 +207,30 @@ view config mainLayoutModel layoutModel global model =
 
 
 filterView : Global.Model -> Model -> Element Msg
-filterView { device } model =
+filterView global model =
     let
         container =
-            responsive device
+            responsive global.device
                 { phone = column
                 , desktop = wrappedRow
                 }
     in
     container
-        [ responsive device
+        [ responsive global.device
             { phone = alignLeft, desktop = alignRight }
         , spacingXY 32 16
         ]
-        [ SelectMenu.view
+        [ SelectMenu.viewButton
             []
             { title = "Language:"
-            , description = "Select a language"
             , defaultText = "Any"
-            , options = languageValues model.languages
-            , toString = languageToString
-            , showFilter = True
-            , model = model.languageSelectMenu
-            , toMsg = LanguageSelectMsg
-            , device = device
+            , popup = languageMenuPopup global model
             }
-        , SelectMenu.view
+        , SelectMenu.viewButton
             []
             { title = "Sort:"
-            , description = "Sort options"
             , defaultText = "Select"
-            , options = sortValues
-            , toString = sortToString
-            , showFilter = False
-            , model = model.sortSelectMenu
-            , toMsg = SortSelectMsg
-            , device = device
+            , popup = sortMenuPopup global model
             }
         ]
 
@@ -396,3 +404,45 @@ popularRepoView developer =
                     ]
                     [ text popularRepo.description ]
                 ]
+
+
+
+-- UTILS
+
+
+openSortModal : Global.Msg
+openSortModal =
+    openModal Modal.DevListSort
+
+
+openLanguageModal : Global.Msg
+openLanguageModal =
+    openModal Modal.DevListLanguage
+
+
+
+-- POPUPS
+
+
+sortMenuPopup : Global.Model -> Model -> SelectMenu.SelectMenuPopup Sort Msg
+sortMenuPopup global model =
+    { title = "Sort options"
+    , options = sortValues
+    , toString = sortToString
+    , showFilter = False
+    , model = model.sortSelectMenu
+    , toMsg = SortSelectMsg
+    , device = global.device
+    }
+
+
+languageMenuPopup : Global.Model -> Model -> SelectMenu.SelectMenuPopup Language Msg
+languageMenuPopup global model =
+    { title = "Select a language"
+    , options = languageValues model.languages
+    , toString = languageToString
+    , showFilter = True
+    , model = model.languageSelectMenu
+    , toMsg = LanguageSelectMsg
+    , device = global.device
+    }

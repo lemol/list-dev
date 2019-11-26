@@ -1,4 +1,4 @@
-module UI.SelectMenu exposing (Msg(..), State, UpdaterConfig, init, update, updateState, view)
+module UI.SelectMenu exposing (Msg(..), SelectMenuButton, SelectMenuPopup, State, UpdaterConfig, init, update, updateState, viewButton, viewPopup)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -18,10 +18,15 @@ import UI.Icon exposing (checkIcon)
 -- CONFIG
 
 
-type alias SelectMenuConfig value msg =
+type alias SelectMenuButton value msg =
     { title : String
-    , description : String
     , defaultText : String
+    , popup : SelectMenuPopup value msg
+    }
+
+
+type alias SelectMenuPopup value msg =
+    { title : String
     , options : Maybe (List value)
     , toString : value -> String
     , showFilter : Bool
@@ -150,16 +155,22 @@ update config msg model =
 -- VIEW
 
 
-view : List (Attribute msg) -> SelectMenuConfig value msg -> Element msg
-view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
+viewButton : List (Attribute msg) -> SelectMenuButton value msg -> Element msg
+viewButton attrs { title, defaultText, popup } =
     let
+        dropPopup =
+            viewPopup
+                [ paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
+                , Element.alignRight
+                ]
+                popup
+
         openAttrs =
-            if model.open then
-                [ responsive device
-                    { desktop = below (listDropdownBody config)
+            if popup.model.open then
+                [ responsive popup.device
+                    { desktop = below dropPopup
                     , phone = below Element.none
                     }
-                    |> Element.mapAttribute toMsg
                 ]
 
             else
@@ -168,7 +179,7 @@ view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
     Input.button
         ([ pointer
          , focused [ Border.color <| rgba255 0 0 0 1 ]
-         , mapAttribute toMsg onBlur
+         , mapAttribute popup.toMsg onBlur
          ]
             ++ openAttrs
             ++ attrs
@@ -181,7 +192,7 @@ view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
                 , Font.color <| rgb255 88 96 105
                 , mouseOver
                     [ Font.color <| rgb255 36 41 46 ]
-                , Events.onClick (toMsg <| SetOpen True)
+                , Events.onClick (popup.toMsg <| SetOpen True)
                 ]
                 [ el
                     []
@@ -189,8 +200,8 @@ view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
                 , el
                     [ Font.semiBold
                     ]
-                    (model.selected
-                        |> Maybe.map toString
+                    (popup.model.selected
+                        |> Maybe.map popup.toString
                         |> Maybe.withDefault defaultText
                         |> text
                     )
@@ -199,8 +210,8 @@ view attrs ({ title, defaultText, toString, model, toMsg, device } as config) =
         }
 
 
-listDropdownBody : SelectMenuConfig value msg -> Element (Msg value)
-listDropdownBody { description, options, toString, model, showFilter, device } =
+viewPopup : List (Attribute msg) -> SelectMenuPopup value msg -> Element msg
+viewPopup attrs { title, options, toString, model, showFilter, toMsg } =
     let
         listTitle =
             el
@@ -210,9 +221,15 @@ listDropdownBody { description, options, toString, model, showFilter, device } =
                 , height <| px 34
                 , padding 8
                 , Font.semiBold
+                , Border.roundEach
+                    { topLeft = 3
+                    , topRight = 3
+                    , bottomLeft = 0
+                    , bottomRight = 0
+                    }
                 , Background.color <| rgb255 0xF6 0xF8 0xFA
                 ]
-                (el [ centerY ] <| text description)
+                (el [ centerY ] <| text title)
 
         filterBox =
             el
@@ -305,48 +322,45 @@ listDropdownBody { description, options, toString, model, showFilter, device } =
                     [ centerY ]
                     (text <| toString value)
     in
-    el
-        [ responsive device
-            { desktop = paddingEach { top = 8, bottom = 8, left = 12, right = 0 }
-            , phone = moveLeft 12
-            }
-        , responsive device
-            { desktop = Element.alignRight
-            , phone = Element.alignLeft
-            }
-        ]
-    <|
-        column
-            [ width <| px 300
-            , Font.size 12
-            , Border.color <| rgba255 27 31 35 0.15
-            , Border.width 1
-            , Border.rounded 3
-            , Border.shadow
-                { offset = ( 0, 3 )
-                , size = 0
-                , blur = 12
-                , color = rgba255 27 31 35 0.15
-                }
-            ]
-            [ listTitle
-            , if showFilter then
-                filterBox
-
-              else
-                Element.none
-            , column
-                [ width fill
-                , height <| maximum 400 fill
-                , scrollbarY
-                , Background.color <| rgb255 0xFF 0xFF 0xFF
+    el attrs <|
+        Element.map toMsg <|
+            column
+                [ width <| px 300
+                , Font.size 12
+                , Border.color <| rgba255 27 31 35 0.15
+                , Border.width 1
+                , Border.rounded 3
+                , Border.shadow
+                    { offset = ( 0, 3 )
+                    , size = 0
+                    , blur = 12
+                    , color = rgba255 27 31 35 0.15
+                    }
                 ]
-                (options
-                    |> Maybe.withDefault []
-                    |> List.filter (toString >> String.toLower >> String.contains (String.toLower model.filter))
-                    |> List.indexedMap itemButton
-                )
-            ]
+                [ listTitle
+                , if showFilter then
+                    filterBox
+
+                  else
+                    Element.none
+                , column
+                    [ width fill
+                    , height <| maximum 400 fill
+                    , scrollbarY
+                    , Background.color <| rgb255 0xFF 0xFF 0xFF
+                    , Border.roundEach
+                        { topLeft = 0
+                        , topRight = 0
+                        , bottomLeft = 3
+                        , bottomRight = 3
+                        }
+                    ]
+                    (options
+                        |> Maybe.withDefault []
+                        |> List.filter (toString >> String.toLower >> String.contains (String.toLower model.filter))
+                        |> List.indexedMap itemButton
+                    )
+                ]
 
 
 dropdownGroup : Attribute msg
