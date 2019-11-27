@@ -283,7 +283,6 @@ viewPopup attrs { title, options, toString, model, showFilter, toMsg } =
                             el
                                 [ centerY
                                 , padding 8
-                                , Font.color <| rgb255 255 0 0
                                 ]
                                 (checkIcon [])
                         ]
