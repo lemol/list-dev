@@ -9,6 +9,7 @@ import Main.Messages exposing (Msg(..))
 import Main.Model exposing (Flags, Model)
 import Page
 import Routing exposing (parseUrl)
+import UI exposing (mainFontFamily)
 import UI.Modal.View as ModalView
 import Url
 import Url.Parser exposing (map)
@@ -154,17 +155,3 @@ view model =
     { title = page.title
     , body = [ body ]
     }
-
-
-mainFontFamily : List Font.Font
-mainFontFamily =
-    List.map Font.typeface
-        [ "-apple-system"
-        , "BlinkMacSystemFont"
-        , "Segoe UI"
-        , "Helvetica"
-        , "Arial"
-        , "sans-serif"
-        , "Apple Color Emoji"
-        , "Segoe UI Emoji"
-        ]

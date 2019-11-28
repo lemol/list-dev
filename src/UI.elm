@@ -1,6 +1,7 @@
-module UI exposing (Document, responsive)
+module UI exposing (Document, mainFontFamily, responsive)
 
 import Element exposing (Device, DeviceClass(..), Element)
+import Element.Font as Font
 
 
 
@@ -25,3 +26,21 @@ responsive device { phone, desktop } =
 
         _ ->
             desktop
+
+
+
+-- VALUES
+
+
+mainFontFamily : List Font.Font
+mainFontFamily =
+    List.map Font.typeface
+        [ "-apple-system"
+        , "BlinkMacSystemFont"
+        , "Segoe UI"
+        , "Helvetica"
+        , "Arial"
+        , "sans-serif"
+        , "Apple Color Emoji"
+        , "Segoe UI Emoji"
+        ]
