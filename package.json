@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "parcel static/index.html",
+    "explorer": "parcel explorer/index.html",
     "build": "parcel build --out-dir public static/index.html"
   },
   "devDependencies": {

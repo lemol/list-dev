@@ -1,4 +1,4 @@
-module UI.Button exposing (githubTextButton, githubTextLink)
+module UI.Button exposing (githubLinkButton, githubTextButton)
 
 import Element exposing (Element, centerY, el, focused, height, link, mouseOver, paddingXY, px, rgb255, rgba255, text)
 import Element.Background as Background
@@ -31,8 +31,8 @@ githubTextButton label =
         }
 
 
-githubTextLink : String -> String -> Element msg
-githubTextLink url label =
+githubLinkButton : String -> String -> Element msg
+githubLinkButton url label =
     link
         [ height <| px 28
         , paddingXY 10 3

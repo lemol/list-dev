@@ -26,7 +26,7 @@
 
 - [x] **Authentication** with **[Auth0](https://auth0.com)**
 
-- [ ] **Responsive** design
+- [x] **Responsive** design
 
 - [ ] **Mobile** apps
 

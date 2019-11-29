@@ -12,7 +12,7 @@ import Layout.Main as MainLayout
 import Layout.Trending as Layout
 import RemoteData exposing (RemoteData(..))
 import UI exposing (Document, responsive)
-import UI.Button exposing (githubTextLink)
+import UI.Button exposing (githubLinkButton)
 import UI.Modal.Data as Modal
 import UI.Modal.Messages exposing (closeModal, openModal)
 import UI.SelectMenu as SelectMenu
@@ -378,7 +378,7 @@ developerListItemView device count developer =
                         ]
                 }
             , popularRepoView developer
-            , el [ responsive device { desktop = alignRight, phone = alignLeft } ] (githubTextLink developer.htmlUrl "Profile")
+            , el [ responsive device { desktop = alignRight, phone = alignLeft } ] (githubLinkButton developer.htmlUrl "Profile")
             ]
         ]
 
