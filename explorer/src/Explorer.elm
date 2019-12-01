@@ -12,12 +12,12 @@ import UIExplorer exposing (UIExplorerProgram, defaultConfig, explore, storiesOf
 
 
 type alias Model =
-    { searchBoxText : String }
+    { searchBox : SearchBox.State }
 
 
 type Msg
     = NoOp
-    | SearchBoxChanged String
+    | SearchBoxMsg SearchBox.Msg
 
 
 update : Msg -> UIExplorer.Model Model Msg {} -> UIExplorer.Model Model Msg {}
@@ -26,17 +26,15 @@ update msg model =
         NoOp ->
             model
 
-        SearchBoxChanged newText ->
+        SearchBoxMsg subMsg ->
             { model
-                | customModel =
-                    { searchBoxText = newText
-                    }
+                | customModel = { searchBox = SearchBox.update subMsg model.customModel.searchBox }
             }
 
 
 config : UIExplorer.Config Model Msg {}
 config =
-    { customModel = { searchBoxText = "" }
+    { customModel = { searchBox = SearchBox.init }
     , customHeader = Nothing
     , update = update
     , viewEnhancer = \m stories -> stories
@@ -114,11 +112,11 @@ main =
             "SearchBox"
             [ ( "Default"
               , \model ->
-                    SearchBox.searchBox
+                    SearchBox.view
                         []
                         { placeholder = Just "Search users..."
-                        , onChange = SearchBoxChanged
-                        , text = model.customModel.searchBoxText
+                        , state = model.customModel.searchBox
+                        , toMsg = SearchBoxMsg
                         }
                         |> Element.el
                             [ Element.padding 10

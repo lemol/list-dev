@@ -38,7 +38,7 @@ type alias PageConfig msg =
 
 type alias Model =
     { userMenuOpen : Bool
-    , searchBoxText : String
+    , searchBox : SearchBox.State
     }
 
 
@@ -50,7 +50,7 @@ type Msg
     = Login
     | Logout
     | ToggleUserMenu Bool
-    | SearchBoxChanged String
+    | SearchBoxMsg SearchBox.Msg
 
 
 
@@ -69,8 +69,8 @@ update msg model =
         ToggleUserMenu open ->
             ( { model | userMenuOpen = open }, Cmd.none )
 
-        SearchBoxChanged newText ->
-            ( { model | searchBoxText = newText }
+        SearchBoxMsg subMsg ->
+            ( { model | searchBox = SearchBox.update subMsg model.searchBox }
             , Cmd.none
             )
 
@@ -78,7 +78,7 @@ update msg model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { userMenuOpen = False
-      , searchBoxText = ""
+      , searchBox = SearchBox.init
       }
     , Cmd.none
     )
@@ -126,7 +126,7 @@ viewHeaderDesktop model authState =
             row
                 [ spacing 16 ]
                 [ logo
-                , viewSearchBox model.searchBoxText
+                , viewSearchBox model
                 , menuView
                 ]
 
@@ -152,15 +152,15 @@ viewHeaderDesktop model authState =
             ]
 
 
-viewSearchBox : String -> Element Msg
-viewSearchBox text =
-    SearchBox.searchBox
+viewSearchBox : Model -> Element Msg
+viewSearchBox model =
+    SearchBox.view
         [ width <| px 300
         , height <| px 28
         ]
         { placeholder = Just "Search users..."
-        , onChange = SearchBoxChanged
-        , text = text
+        , state = model.searchBox
+        , toMsg = SearchBoxMsg
         }
 
 

@@ -1,4 +1,4 @@
-module UI.SearchBox exposing (searchBox)
+module UI.SearchBox exposing (Msg(..), State, init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -8,15 +8,71 @@ import Element.Input as Input
 import RemoteData exposing (RemoteData(..))
 
 
-type alias SearchBoxOptions msg =
-    { placeholder : Maybe String
-    , onChange : String -> msg
-    , text : String
+
+-- DATA
+
+
+type alias State =
+    { text : String
+    , focused : Bool
     }
 
 
-searchBox : List (Element.Attribute msg) -> SearchBoxOptions msg -> Element msg
-searchBox attrs { placeholder, onChange, text } =
+type alias SearchBoxOptions msg =
+    { placeholder : Maybe String
+    , state : State
+    , toMsg : Msg -> msg
+    }
+
+
+
+-- MODEL
+
+
+type alias Model =
+    State
+
+
+
+-- MESSAGE
+
+
+type Msg
+    = TextChanged String
+    | Focus
+    | Blur
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        TextChanged text ->
+            { model | text = text }
+
+        Focus ->
+            { model | focused = True }
+
+        Blur ->
+            { model | focused = False }
+
+
+init : Model
+init =
+    { text = ""
+    , focused = False
+    }
+
+
+
+-- VIEW
+
+
+view : List (Element.Attribute msg) -> SearchBoxOptions msg -> Element msg
+view attrs { placeholder, state, toMsg } =
     row
         ([ Background.color <| rgba255 0xFF 0xFF 0xFF 0.125
          , Border.rounded 3
@@ -37,12 +93,12 @@ searchBox attrs { placeholder, onChange, text } =
             , focused
                 [ Border.color <| rgba255 0xFF 0xFF 0xFF 0 ]
             ]
-            { text = text
+            { text = state.text
             , label = Input.labelHidden "Search"
             , placeholder =
                 placeholder
                     |> Maybe.map (Element.text >> Input.placeholder [])
-            , onChange = onChange
+            , onChange = TextChanged >> toMsg
             }
         , el
             [ Border.width 1
