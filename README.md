@@ -14,9 +14,9 @@
 
 - [x] 🚆 **Navigation**
 
-- [x] 🚀 **Zero configuration deployment** on [ZEIT Now](https://zeit.co/guides/upgrade-to-zero-configuration/). Automated deployment on commit to Github.
+- [x] 🚀 Zero configuration **deployment** on [ZEIT Now](https://zeit.co/guides/upgrade-to-zero-configuration/). Automated deployment on commit to Github.
 
-- [x] JS interop using **Typescript**
+- [x] JS **interop** using [Typescript](https://github.com/dillonkearns/elm-typescript-interop)
 
 - [ ] **Testing**
 
@@ -24,13 +24,13 @@
 
 - [ ] Github **GraphQL** API
 
-- [x] **Authentication** with **[Auth0](https://auth0.com)**
+- [x] **Authentication** with [Auth0](https://auth0.com)
 
-- [x] **Responsive** design
+- [x] [Responsive design](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element#Device)
 
 - [ ] **Mobile** apps
 
-- [ ] **UI Playground** with UI Explorer
+- [x] **UI Playground** with [UI Explorer](https://github.com/kalutheo/elm-ui-explorer)
 
 
 ## Running

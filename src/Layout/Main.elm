@@ -12,6 +12,7 @@ import Html.Attributes exposing (src, style, target)
 import Svg.Attributes as SvgAttr
 import UI exposing (Document)
 import UI.Icon as Icons
+import UI.Input as Input
 
 
 
@@ -36,7 +37,9 @@ type alias PageConfig msg =
 
 
 type alias Model =
-    { userMenuOpen : Bool }
+    { userMenuOpen : Bool
+    , searchBoxText : String
+    }
 
 
 
@@ -47,6 +50,7 @@ type Msg
     = Login
     | Logout
     | ToggleUserMenu Bool
+    | SearchBoxChanged String
 
 
 
@@ -65,10 +69,19 @@ update msg model =
         ToggleUserMenu open ->
             ( { model | userMenuOpen = open }, Cmd.none )
 
+        SearchBoxChanged newText ->
+            ( { model | searchBoxText = newText }
+            , Cmd.none
+            )
+
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { userMenuOpen = False }, Cmd.none )
+    ( { userMenuOpen = False
+      , searchBoxText = ""
+      }
+    , Cmd.none
+    )
 
 
 
@@ -86,7 +99,7 @@ view { content, toMsg } global model =
                 [ height fill
                 , width fill
                 ]
-                [ headerView model.userMenuOpen global
+                [ headerView model global
                     |> Element.map toMsg
                 , content.top
                     |> Maybe.withDefault Element.none
@@ -99,8 +112,8 @@ view { content, toMsg } global model =
     }
 
 
-viewHeaderDesktop : Bool -> AuthState -> Element Msg
-viewHeaderDesktop open authState =
+viewHeaderDesktop : Model -> AuthState -> Element Msg
+viewHeaderDesktop model authState =
     let
         logo =
             el
@@ -113,13 +126,14 @@ viewHeaderDesktop open authState =
             row
                 [ spacing 16 ]
                 [ logo
+                , viewSearchBox model.searchBoxText
                 , menuView
                 ]
 
         right =
             el
                 [ alignRight ]
-                (rightContent open authState)
+                (rightContent model.userMenuOpen authState)
     in
     el
         [ width fill
@@ -136,6 +150,18 @@ viewHeaderDesktop open authState =
             [ leftContent
             , right
             ]
+
+
+viewSearchBox : String -> Element Msg
+viewSearchBox text =
+    Input.searchBox
+        [ width <| px 300
+        , height <| px 28
+        ]
+        { placeholder = Just "Search users..."
+        , onChange = SearchBoxChanged
+        , text = text
+        }
 
 
 viewHeaderMobile : Bool -> AuthState -> Element Msg
@@ -183,14 +209,14 @@ viewHeaderMobile open authState =
             ]
 
 
-headerView : Bool -> Global.Model -> Element Msg
-headerView open global =
+headerView : Model -> Global.Model -> Element Msg
+headerView model global =
     case global.device.class of
         Phone ->
-            viewHeaderMobile open global.auth
+            viewHeaderMobile model.userMenuOpen global.auth
 
         _ ->
-            viewHeaderDesktop open global.auth
+            viewHeaderDesktop model global.auth
 
 
 rightContent : Bool -> AuthState -> Element Msg
