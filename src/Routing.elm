@@ -1,7 +1,12 @@
-module Routing exposing (Route(..), parseUrl, toUrl)
+module Routing exposing (Route(..), RoutingType(..), parseUrl, toUrl)
 
 import Url exposing (Url)
 import Url.Parser exposing (Parser, map, oneOf, parse, s, top)
+
+
+type RoutingType
+    = HashRouting
+    | BrowserRouting
 
 
 type Route
@@ -10,9 +15,23 @@ type Route
     | RepoListRoute
 
 
+routingType : RoutingType
+routingType =
+    HashRouting
+
+
 parseUrl : Url -> Route
 parseUrl url =
-    case parse matchRoute url of
+    let
+        newUrl =
+            case routingType of
+                HashRouting ->
+                    { url | path = url.fragment |> Maybe.withDefault "" }
+
+                BrowserRouting ->
+                    url
+    in
+    case parse matchRoute newUrl of
         Just route ->
             route
 
@@ -31,12 +50,24 @@ matchRoute =
 
 toUrl : Route -> String
 toUrl route =
-    case route of
-        NotFoundRoute ->
-            "/404"
+    let
+        prefix =
+            case routingType of
+                HashRouting ->
+                    "#"
 
-        DevListRoute ->
-            "/developers"
+                BrowserRouting ->
+                    ""
 
-        RepoListRoute ->
-            "/repositories"
+        path =
+            case route of
+                NotFoundRoute ->
+                    "/404"
+
+                DevListRoute ->
+                    "/developers"
+
+                RepoListRoute ->
+                    "/repositories"
+    in
+    prefix ++ path
