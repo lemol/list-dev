@@ -1,4 +1,4 @@
-module UI.Icon exposing (checkIcon, threeBarsIcon)
+module UI.Icon exposing (checkIcon, slashIcon, threeBarsIcon)
 
 import Element
 import Html exposing (Html)
@@ -24,6 +24,19 @@ threeBarsIcon_ attr =
         ]
 
 
+slashIcon_ : List (Attribute msg) -> Html msg
+slashIcon_ attr =
+    svg
+        [ version "1.1", x "0px", y "0px", width "19px", height "20px", viewBox "0 0 19 20", Svg.Attributes.style "enable-background:new 0 0 19 20;" ]
+        [ Svg.path
+            [ fill "none", Svg.Attributes.style "stroke: currentColor", opacity "0.4", d "M3.5,0.5h12c1.7,0,3,1.3,3,3v13c0,1.7-1.3,3-3,3h-12c-1.7,0-3-1.3-3-3v-13C0.5,1.8,1.8,0.5,3.5,0.5z" ]
+            []
+        , Svg.path
+            [ Svg.Attributes.style "fill: currentColor", d "M11.8,6L8,15.1H7.1L10.8,6L11.8,6z" ]
+            []
+        ]
+
+
 checkIcon : List (Attribute msg) -> Element.Element msg
 checkIcon =
     checkIcon_ >> Element.html
@@ -32,3 +45,8 @@ checkIcon =
 threeBarsIcon : List (Attribute msg) -> Element.Element msg
 threeBarsIcon =
     threeBarsIcon_ >> Element.html
+
+
+slashIcon : List (Attribute msg) -> Element.Element msg
+slashIcon =
+    slashIcon_ >> Element.html

@@ -3,9 +3,12 @@ module UI.SearchBox exposing (Msg(..), State, init, update, view)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import RemoteData exposing (RemoteData(..))
+import UI.Icon as Icon
+import UI.Style exposing (percentWidth, transition)
 
 
 
@@ -73,23 +76,46 @@ init =
 
 view : List (Element.Attribute msg) -> SearchBoxOptions msg -> Element msg
 view attrs { placeholder, state, toMsg } =
+    let
+        button =
+            if state.focused then
+                Element.none
+
+            else
+                el
+                    [ Font.color <| rgba255 151 154 156 0.4
+                    , Events.onClick (Focus |> toMsg)
+                    ]
+                <|
+                    Icon.slashIcon []
+
+        focusedAttrs =
+            if state.focused then
+                [ Background.color <| rgb255 0xFF 0xFF 0xFF
+                , Font.color <| rgb255 0x00 0x00 0x00
+                , percentWidth 200
+                ]
+
+            else
+                []
+    in
     row
         ([ Background.color <| rgba255 0xFF 0xFF 0xFF 0.125
          , Border.rounded 3
          , Font.size 14
          , paddingXY 4 0
          , Font.color <| rgba255 0xFF 0xFF 0xFF 0.7
-         , focused
-            [ Background.color <| rgb255 0xFF 0xFF 0xFF
-            , Font.color <| rgb255 0x00 0x00 0x00
-            ]
+         , transition { props = [ "width" ], duration = 500 }
          ]
+            ++ focusedAttrs
             ++ attrs
         )
         [ Input.search
             [ Background.color <| rgba255 0xFF 0xFF 0xFF 0
             , Border.width 0
             , padding 0
+            , Events.onFocus (Focus |> toMsg)
+            , Events.onLoseFocus (Blur |> toMsg)
             , focused
                 [ Border.color <| rgba255 0xFF 0xFF 0xFF 0 ]
             ]
@@ -100,14 +126,5 @@ view attrs { placeholder, state, toMsg } =
                     |> Maybe.map (Element.text >> Input.placeholder [])
             , onChange = TextChanged >> toMsg
             }
-        , el
-            [ Border.width 1
-            , Border.rounded 3
-            , Border.color <| rgba255 151 154 156 0.4
-            , Font.color <| rgba255 151 154 156 0.4
-            ]
-          <|
-            el
-                [ paddingXY 8 4 ]
-                (Element.text "/")
+        , button
         ]

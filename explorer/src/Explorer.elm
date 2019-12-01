@@ -94,6 +94,7 @@ main =
                     Element.row [ Element.spacing 8, Element.width Element.fill ]
                         [ Element.el [] (Icon.checkIcon [])
                         , Element.el [] (Icon.threeBarsIcon [])
+                        , Element.el [] (Icon.slashIcon [])
                         ]
                         |> toHtml
               , {}
@@ -103,6 +104,7 @@ main =
                     Element.row [ Element.spacing 8, Element.width Element.fill ]
                         [ Element.el [ Font.color <| Element.rgb255 0xFF 0 0 ] (Icon.checkIcon [])
                         , Element.el [ Font.color <| Element.rgb255 0xFF 0 0 ] (Icon.threeBarsIcon [])
+                        , Element.el [ Font.color <| Element.rgb255 0xFF 0 0 ] (Icon.slashIcon [])
                         ]
                         |> toHtml
               , {}
@@ -113,7 +115,7 @@ main =
             [ ( "Default"
               , \model ->
                     SearchBox.view
-                        []
+                        [ Element.height <| Element.px 30 ]
                         { placeholder = Just "Search users..."
                         , state = model.customModel.searchBox
                         , toMsg = SearchBoxMsg
