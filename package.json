@@ -5,9 +5,9 @@
   "license": "MIT",
   "scripts": {
     "start": "npm run dev",
-    "dev": "concurrently npm:dev:explorer npm:dev:web",
+    "dev": "concurrently npm:dev:ui-explorer npm:dev:web",
     "dev:web": "parcel -p 8000 static/index.html",
-    "dev:explorer": "cd explorer && parcel -p 8800 index.html",
+    "dev:ui-explorer": "cd ui-explorer && parcel -p 8800 index.html",
     "build": "parcel build --out-dir public static/index.html"
   },
   "devDependencies": {

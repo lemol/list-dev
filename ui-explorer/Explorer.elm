@@ -112,7 +112,7 @@ main =
             ]
         , storiesOf
             "SearchBox"
-            [ ( "Defaults"
+            [ ( "Default"
               , \model ->
                     SearchBox.view
                         [ Element.height <| Element.px 30 ]
