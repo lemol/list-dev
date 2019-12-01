@@ -1,4 +1,4 @@
-module UI.Input exposing (searchBox)
+module UI.SearchBox exposing (searchBox)
 
 import Element exposing (..)
 import Element.Background as Background

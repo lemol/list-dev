@@ -6,7 +6,7 @@ import Element.Font as Font
 import Html exposing (Html)
 import UI.Button as Button
 import UI.Icon as Icon
-import UI.Input as Input
+import UI.SearchBox as SearchBox
 import UI.SelectMenu as SelectMenu
 import UIExplorer exposing (UIExplorerProgram, defaultConfig, explore, storiesOf)
 
@@ -114,7 +114,7 @@ main =
             "SearchBox"
             [ ( "Default"
               , \model ->
-                    Input.searchBox
+                    SearchBox.searchBox
                         []
                         { placeholder = Just "Search users..."
                         , onChange = SearchBoxChanged

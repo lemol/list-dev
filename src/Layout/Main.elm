@@ -12,7 +12,7 @@ import Html.Attributes exposing (src, style, target)
 import Svg.Attributes as SvgAttr
 import UI exposing (Document)
 import UI.Icon as Icons
-import UI.Input as Input
+import UI.SearchBox as SearchBox
 
 
 
@@ -154,7 +154,7 @@ viewHeaderDesktop model authState =
 
 viewSearchBox : String -> Element Msg
 viewSearchBox text =
-    Input.searchBox
+    SearchBox.searchBox
         [ width <| px 300
         , height <| px 28
         ]
