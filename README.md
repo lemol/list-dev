@@ -4,9 +4,7 @@
 
 **[Live demo](https://github-ao-elm.now.sh)**
 
-
 ## Features
-
 
 - [x] 📦 Zero configuration environment with **[Parcel](https://https://parceljs.org/)** bundler
 
@@ -32,24 +30,24 @@
 
 - [x] **UI Playground** with [UI Explorer](https://github.com/kalutheo/elm-ui-explorer)
 
-
 ## Running
 
 ```sh
 yarn         # just the first time
-yarn dev     # then open http://localhost:1234
+yarn dev     # then open http://localhost:8000
 ```
 
+- Application: [http://localhost:8000](http://localhost:8000)
+
+- UI explorer: [http://localhost:8800](http://localhost:8800)
 
 ## Plus
 
 Ready to use on [Gitpod](https://www.gitpod.io/).
 
-
 ## Acknowledgments
 
 The idea of listing the developers from Angola is based on the showcase from [@flowck](https://github.com/flowck) on his [https://github.com/flowck/angolan-on-github](https://github.com/flowck/angolan-on-github) repository.
-
 
 ## License
 
