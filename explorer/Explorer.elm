@@ -8,7 +8,7 @@ import UI.Button as Button
 import UI.Icon as Icon
 import UI.SearchBox as SearchBox
 import UI.SelectMenu as SelectMenu
-import UIExplorer exposing (UIExplorerProgram, defaultConfig, explore, storiesOf)
+import UIExplorer exposing (UIExplorerProgram, explore, storiesOf)
 
 
 type alias Model =
@@ -37,8 +37,8 @@ config =
     { customModel = { searchBox = SearchBox.init }
     , customHeader = Nothing
     , update = update
-    , viewEnhancer = \m stories -> stories
-    , menuViewEnhancer = \m v -> v
+    , viewEnhancer = \_ stories -> stories
+    , menuViewEnhancer = \_ v -> v
     }
 
 
@@ -112,7 +112,7 @@ main =
             ]
         , storiesOf
             "SearchBox"
-            [ ( "Default"
+            [ ( "Defaults"
               , \model ->
                     SearchBox.view
                         [ Element.height <| Element.px 30 ]

@@ -111,7 +111,8 @@ view attrs { placeholder, state, toMsg } =
             ++ attrs
         )
         [ Input.search
-            [ Background.color <| rgba255 0xFF 0xFF 0xFF 0
+            [ width fill
+            , Background.color <| rgba255 0xFF 0xFF 0xFF 0
             , Border.width 0
             , padding 0
             , Events.onFocus (Focus |> toMsg)
