@@ -60,13 +60,16 @@ init =
 view : Model -> Element Msg
 view model =
     SearchBox.view
-        [ height <| px 30 ]
+        [ height <| px 30
+        , width <| px 300
+        ]
         { placeholder = Just "Search users..."
         , state = model.state
         , toMsg = SearchBoxMsg
         }
         |> el
             [ padding 10
+            , width fill
             , Background.color <| rgb255 0x24 0x29 0x2E
             ]
 
