@@ -27,7 +27,7 @@ threeBarsIcon_ attr =
 slashIcon_ : List (Attribute msg) -> Html msg
 slashIcon_ attr =
     svg
-        [ version "1.1", x "0px", y "0px", width "19px", height "20px", viewBox "0 0 19 20", Svg.Attributes.style "enable-background:new 0 0 19 20;" ]
+        ([ version "1.1", x "0px", y "0px", width "19px", height "20px", viewBox "0 0 19 20", Svg.Attributes.style "enable-background:new 0 0 19 20;" ] ++ attr)
         [ Svg.path
             [ fill "none", Svg.Attributes.style "stroke: currentColor", opacity "0.4", d "M3.5,0.5h12c1.7,0,3,1.3,3,3v13c0,1.7-1.3,3-3,3h-12c-1.7,0-3-1.3-3-3v-13C0.5,1.8,1.8,0.5,3.5,0.5z" ]
             []

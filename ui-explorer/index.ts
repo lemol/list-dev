@@ -1,5 +1,5 @@
-import { Elm } from "./Explorer.elm";
+import { Elm } from "./Explorer/Main.elm";
 
-Elm.Explorer.init({
+Elm.Explorer.Main.init({
   node: document.getElementById("app")
 });

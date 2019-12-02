@@ -1,18 +1,18 @@
-module Explorer exposing (main)
+module Explorer.Main exposing (main)
 
 import Element exposing (Element, layout)
 import Element.Background as Background
 import Element.Font as Font
+import Explorer.Stories.SearchBox as SearchBox
 import Html exposing (Html)
 import UI.Button as Button
 import UI.Icon as Icon
-import UI.SearchBox as SearchBox
 import UI.SelectMenu as SelectMenu
 import UIExplorer exposing (UIExplorerProgram, explore, storiesOf)
 
 
 type alias Model =
-    { searchBox : SearchBox.State }
+    { searchBox : SearchBox.Model }
 
 
 type Msg
@@ -110,24 +110,10 @@ main =
               , {}
               )
             ]
-        , storiesOf
-            "SearchBox"
-            [ ( "Default"
-              , \model ->
-                    SearchBox.view
-                        [ Element.height <| Element.px 30 ]
-                        { placeholder = Just "Search users..."
-                        , state = model.customModel.searchBox
-                        , toMsg = SearchBoxMsg
-                        }
-                        |> Element.el
-                            [ Element.padding 10
-                            , Background.color <| Element.rgb255 0x24 0x29 0x2E
-                            ]
-                        |> toHtml
-              , {}
-              )
-            ]
+        , SearchBox.stories
+            { getModel = .customModel >> .searchBox
+            , toMsg = SearchBoxMsg
+            }
         ]
 
 
