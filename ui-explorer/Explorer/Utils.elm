@@ -1,6 +1,6 @@
 module Explorer.Utils exposing (StoryOptions, storiesOf)
 
-import Element exposing (..)
+import Element exposing (Element, fill, layout, width)
 import Html exposing (Html)
 import UIExplorer exposing (Model, UI)
 
@@ -24,4 +24,4 @@ storiesOf uiId stories { getModel, toMsg } =
 
 toHtml : Element msg -> Html msg
 toHtml =
-    layout [ Element.width Element.fill ]
+    layout [ width fill ]
