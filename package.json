@@ -4,8 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "npm run dev",
-    "dev": "concurrently npm:dev:ui-explorer npm:dev:web",
     "dev:web": "parcel -p 8000 static/index.html",
     "dev:ui-explorer": "cd ui-explorer && parcel -p 8800 index.html",
     "build": "parcel build --out-dir public static/index.html"
@@ -24,6 +22,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@auth0/auth0-spa-js": "^1.6.0"
+    "@auth0/auth0-spa-js": "^1.6.0",
+    "apollo-server-micro": "^2.9.12"
   }
 }
