@@ -7,6 +7,14 @@ import Url exposing (percentEncode)
 
 
 
+-- import Graphql.Operation exposing (RootQuery)
+-- import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+-- import Github.Object.SearchResultItemConnection as SearchResultItemConnection
+-- import Github.Query as Query
+-- -- GRAPHQL
+-- query : SelectionSet (Maybe Human) RootQuery
+-- query =
+--     Query.search identity { query = Id "1001" } humanSelection
 -- TYPES
 
 
