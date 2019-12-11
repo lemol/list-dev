@@ -1,3 +1,4 @@
+import { NowRequest, NowResponse } from '@now/node'
 import fetch from "node-fetch";
 import {
   makeRemoteExecutableSchema,
@@ -6,29 +7,113 @@ import {
 import { ApolloServer } from "apollo-server-micro";
 import { createHttpLink } from "apollo-link-http";
 import { schema as githubSchema } from "@octokit/graphql-schema";
+import axios from "axios";
+import * as jwksClient  from 'jwks-rsa';
+import * as jwt from 'jsonwebtoken';
 
-const makeGithubLink = () =>
-  createHttpLink({
-    uri: `https://api.github.com/graphql`,
-    fetch: fetch as any,
+const AUTH0_DOMAIN = process.env.AUTH_DOMAIN;
+
+let auth0AdminToken = null;
+
+async function getSigninKey(kid: string) {
+  const client = jwksClient({
+    strictSsl: true,
+    jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
+  });
+
+  return new Promise((resolve, reject) => {
+    client.getSigningKey(kid, (err, key) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve((key as any).publicKey || (key as any).rsaPublicKey);
+    });
+  });
+}
+
+async function verifyAuth0UserToken(token: string) {
+  const decodedToken = jwt.decode(token, { complete: true });
+  const kid = decodedToken.header.kid;
+
+  const signinKey = await getSigninKey(kid);
+
+  const options = {
+    alg: 'RS256',
+  };
+
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, signinKey, options, (verifyError, decoded) => {
+      if (verifyError) {
+        reject({ verifyError });
+        return;
+      }
+
+      resolve(decoded);
+    });
+  });
+}
+
+async function getAuth0AdminToken() {
+  if (auth0AdminToken) {
+    return auth0AdminToken;
+  }
+
+  const result = await axios.post(`https://${AUTH0_DOMAIN}/oauth/token`, {
+    "client_id": process.env.AUTH0_CLIENT_ID,
+    "client_secret": process.env.AUTH0_CLIENT_SECRET,
+    "audience": `https://${AUTH0_DOMAIN}/api/v2/`,
+    "grant_type": "client_credentials"
+  });
+
+  auth0AdminToken = result.data.access_token;
+
+  return auth0AdminToken;
+}
+
+async function getGithubToken(userId, adminToken) {
+  const result = await axios.get(`https://${AUTH0_DOMAIN}/api/v2/users/${userId}`, {
     headers: {
-      Authorization: "Bearer d4b00a34b2e50d5a59a9f1114b584ff457a9303d"
+      authorization: `Bearer ${adminToken}`
     }
   });
 
-const githubIntrospectionSchema = makeExecutableSchema({
-  typeDefs: githubSchema.idl
-});
+  return result.data.identities
+    .filter(x => x.provider === 'github')
+    .map(x => x.access_token)[0];
+}
 
-const githubExecutableSchema = makeRemoteExecutableSchema({
-  schema: githubIntrospectionSchema,
-  link: makeGithubLink()
-});
+function makeGithubLink(token) {
+  return createHttpLink({
+    uri: `https://api.github.com/graphql`,
+    fetch: fetch as any,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    }
+  });
+}
 
-const server = new ApolloServer({
-  schema: githubExecutableSchema,
-  introspection: true,
-  playground: false
-});
+export = async (req: NowRequest, res: NowResponse) => {
+  const userAccessToken = req.headers.authorization.substring(7);
+  const adminToken = await getAuth0AdminToken();
+  const user = await verifyAuth0UserToken(userAccessToken);
+  const githubToken = getGithubToken((user as any).sub, adminToken);
+  
+  const githubIntrospectionSchema = makeExecutableSchema({
+    typeDefs: githubSchema.idl
+  });
 
-export = server.createHandler({ path: "/api/github-graphql.ts" });
+  const githubExecutableSchema = makeRemoteExecutableSchema({
+    schema: githubIntrospectionSchema,
+    link: makeGithubLink(githubToken),
+  });
+  
+  const server = new ApolloServer({
+    schema: githubExecutableSchema,
+    introspection: true,
+    playground: false
+  });
+
+  return server.createHandler({ path: "/api/github-graphql.ts" })(req, res);
+}

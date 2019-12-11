@@ -30,11 +30,13 @@ type alias User =
     , picture : String
     }
 
+type alias AccessToken =
+    String
 
 type AuthState
     = IDLE
     | NotAuthenticated
-    | Authenticated User
+    | Authenticated User AccessToken
 
 
 
@@ -178,6 +180,6 @@ authStateDecoder =
             D.null NotAuthenticated
 
         authenticated =
-            D.map Authenticated userDecoder
+            D.map2 Authenticated userDecoder (D.field "accessToken" string)
     in
     D.oneOf [ notAuthenticated, authenticated ]

@@ -38,6 +38,9 @@ async function setAuthState() {
   }
 
   const user = await auth0.getUser();
+  const token = await auth0.getTokenSilently();
+
+  user.accessToken = token;
 
   app.ports.setAuthState.send(user);
 }

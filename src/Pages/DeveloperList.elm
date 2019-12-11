@@ -1,6 +1,7 @@
 module Pages.DeveloperList exposing (Model, Msg, init, languageMenuPopup, sortMenuPopup, update, view)
 
 import Data.Developer exposing (..)
+import Data.Developer.Api exposing (..)
 import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
