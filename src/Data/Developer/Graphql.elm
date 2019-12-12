@@ -95,7 +95,7 @@ languageFilterToQueryString filter =
             ""
 
         Just str ->
-            " language:" ++ percentEncode str
+            " language:" ++ str
 
 
 fetchDeveloperList : AccessToken -> Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
@@ -118,6 +118,6 @@ fetchDeveloperList token sortBy languageFilter toMsg =
         -- ++ "&per_page=20"
     in
     query
-        |> Graphql.Http.queryRequest "http://localhost:3000/api/github-graphql.ts"
+        |> Graphql.Http.queryRequest "/api/github-graphql.ts"
         |> Graphql.Http.withHeader "authorization" ("Bearer " ++ token)
         |> Graphql.Http.send (RemoteData.fromResult >> RemoteData.mapError GraphqlError >> toMsg)
