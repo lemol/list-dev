@@ -1,6 +1,8 @@
-module Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, Sort(..), languageToString, languageValues, sortToString, sortValues)
+module Data.Developer exposing (Developer, DeveloperListWebData, RemoteError(..), Language, LanguageListWebData, Sort(..), languageToString, languageValues, sortToString, sortValues)
 
-import RemoteData exposing (WebData)
+import Graphql.Http
+import Http
+import RemoteData exposing (RemoteData, WebData)
 
 
 type alias Repository =
@@ -19,8 +21,13 @@ type alias Developer =
     }
 
 
+type RemoteError a
+    = RestError Http.Error
+    | GraphqlError (Graphql.Http.Error a)
+
+
 type alias DeveloperListWebData =
-    WebData (List Developer)
+    RemoteData (RemoteError (List Developer)) (List Developer)
 
 
 type Sort
@@ -91,3 +98,4 @@ sortToString sort =
 
         FewestRepositories ->
             "Fewest repositories"
+

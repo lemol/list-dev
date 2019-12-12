@@ -1,6 +1,6 @@
 module Data.Developer.RestApi exposing (fetchDeveloperList, fetchLanguageList)
 
-import Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, Sort(..))
+import Data.Developer exposing (Developer, DeveloperListWebData, RemoteError(..), Language, LanguageListWebData, Sort(..))
 import Http
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..))
@@ -93,7 +93,7 @@ fetchDeveloperList sortBy languageFilter toMsg =
     in
     Http.get
         { url = usersUrl
-        , expect = Http.expectJson (RemoteData.fromResult >> toMsg) developerListDecoder
+        , expect = Http.expectJson (RemoteData.fromResult >> RemoteData.mapError RestError >> toMsg) developerListDecoder
         }
 
 

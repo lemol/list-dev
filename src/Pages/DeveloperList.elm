@@ -50,8 +50,8 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Global.Model -> ( Model, Cmd Msg )
+init global =
     ( { sort = Nothing
       , language = Nothing
       , developers = NotAsked
@@ -60,7 +60,7 @@ init =
       , languageSelectMenu = SelectMenu.init Nothing
       }
     , Cmd.batch
-        [ fetchDeveloperList Nothing Nothing FetchDeveloperListResponse
+        [ fetchDeveloperList global.auth Nothing Nothing FetchDeveloperListResponse
         , fetchLanguageList FetchLanguageListResponse
         ]
     )
@@ -96,7 +96,7 @@ update msg global model =
         FetchDeveloperList ->
             ( model
               -- Set Loading state??
-            , fetchDeveloperList model.sort model.language FetchDeveloperListResponse
+            , fetchDeveloperList global.auth model.sort model.language FetchDeveloperListResponse
             , Nothing
             )
 

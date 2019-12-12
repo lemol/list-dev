@@ -37,11 +37,11 @@ init flags url key =
         route =
             parseUrl url
 
-        ( pageModel, pageCmd ) =
-            Page.init () route
-
         ( globalModel, globalCmd ) =
             Global.init flags
+
+        ( pageModel, pageCmd ) =
+            Page.init () globalModel route
 
         model =
             { page = pageModel
@@ -82,7 +82,7 @@ update msg model =
                     parseUrl url
 
                 ( newPageModel, newPageCmd ) =
-                    Page.enterRoute route model.page
+                    Page.enterRoute model.global route model.page
             in
             ( { model | page = newPageModel }
             , Cmd.batch

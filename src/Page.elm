@@ -23,8 +23,8 @@ type alias Model =
     }
 
 
-init : () -> Route -> ( Model, Cmd Msg )
-init _ route =
+init : () -> Global.Model -> Route -> ( Model, Cmd Msg )
+init _ global route =
     let
         model =
             { route = route
@@ -34,7 +34,7 @@ init _ route =
             , repoList = Nothing
             }
     in
-    enterRoute route model
+    enterRoute global route model
 
 
 
@@ -183,8 +183,8 @@ viewEmpty =
 -- ROUTING
 
 
-enterRoute : Route -> Model -> ( Model, Cmd Msg )
-enterRoute route model =
+enterRoute : Global.Model -> Route -> Model -> ( Model, Cmd Msg )
+enterRoute global route model =
     let
         ( newModel, cmd ) =
             case route of
@@ -203,7 +203,7 @@ enterRoute route model =
                         page =
                             model.devList
                                 |> Maybe.map (\m -> ( m, Cmd.none ))
-                                |> Maybe.withDefault DevList.init
+                                |> Maybe.withDefault (DevList.init global)
                     in
                     ( { model
                         | mainLayout = Just <| Tuple.first mainLayout

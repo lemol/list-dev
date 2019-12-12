@@ -1,6 +1,6 @@
 module Data.Developer.Graphql exposing (fetchDeveloperList)
 
-import Data.Developer exposing (Developer, DeveloperListWebData, Language, Sort(..))
+import Data.Developer exposing (Developer, DeveloperListWebData, Language, RemoteError(..), Sort(..))
 import Github.Enum.SearchType as SearchType
 import Github.Object
 import Github.Object.SearchResultItemConnection
@@ -14,33 +14,8 @@ import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Http
 import RemoteData exposing (RemoteData(..))
 import Url exposing (percentEncode)
-
-
-
--- TYPES
-
-
-type alias Response =
-    RemoteData (Graphql.Http.Error (List Developer)) (List Developer)
-
-
-fromResponse : Response -> DeveloperListWebData
-fromResponse data =
-    case data of
-        NotAsked ->
-            NotAsked
-
-        Loading ->
-            Loading
-
-        Success a ->
-            Success a
-
-        Failure e ->
-            Failure Http.Timeout
 
 
 
@@ -120,7 +95,7 @@ languageFilterToQueryString filter =
             ""
 
         Just str ->
-            "+language:" ++ percentEncode str
+            " language:" ++ percentEncode str
 
 
 fetchDeveloperList : AccessToken -> Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
@@ -129,14 +104,14 @@ fetchDeveloperList token sortBy languageFilter toMsg =
         query : SelectionSet (List Developer) RootQuery
         query =
             Github.Query.search
-                identity
+                (\optional -> { optional | first = Present 20 })
                 { query = queryString
                 , type_ = SearchType.User
                 }
                 serachResultSelectionSet
 
         queryString =
-            "location:Angola+type:user"
+            "location:Angola"
                 ++ languageFilterToQueryString languageFilter
 
         -- ++ sortToQueryString sortBy
@@ -145,4 +120,4 @@ fetchDeveloperList token sortBy languageFilter toMsg =
     query
         |> Graphql.Http.queryRequest "http://localhost:3000/api/github-graphql.ts"
         |> Graphql.Http.withHeader "authorization" ("Bearer " ++ token)
-        |> Graphql.Http.send (RemoteData.fromResult >> fromResponse >> toMsg)
+        |> Graphql.Http.send (RemoteData.fromResult >> RemoteData.mapError GraphqlError >> toMsg)
