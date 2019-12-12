@@ -1,6 +1,7 @@
 module Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, Sort(..), languageToString, languageValues, sortToString, sortValues)
 
-import RemoteData exposing (RemoteData, WebData)
+import RemoteData exposing (WebData)
+
 
 type alias Repository =
     { name : String

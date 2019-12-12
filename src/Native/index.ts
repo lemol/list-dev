@@ -1,19 +1,18 @@
 import { Elm } from "../Main";
-import createAuth0Client from '@auth0/auth0-spa-js';
+import createAuth0Client from "@auth0/auth0-spa-js";
 
 const app = Elm.Main.init({
   node: document.getElementById("app"),
   flags: {
     width: window.innerWidth,
-    height: window.innerHeight,
-  },
+    height: window.innerHeight
+  }
 });
 
 const getAuth0 = createAuth0Client({
-  domain: 'github-ao.eu.auth0.com',
-  client_id: 'QtJ3O01q7fhSSmo3Mt3yk75XWmDkQdOi'
+  domain: "github-ao.eu.auth0.com",
+  client_id: "QtJ3O01q7fhSSmo3Mt3yk75XWmDkQdOi"
 });
-
 
 app.ports.requestLogin.subscribe(async () => {
   const auth0 = await getAuth0;
@@ -26,21 +25,21 @@ app.ports.requestLogout.subscribe(async () => {
   const auth0 = await getAuth0;
   await auth0.logout({
     returnTo: window.location.origin
-  })
+  });
 });
 
 async function setAuthState() {
   const auth0 = await getAuth0;
   const isAuthenticated = await auth0.isAuthenticated();
 
-  if(!isAuthenticated) {
+  if (!isAuthenticated) {
     return app.ports.setAuthState.send(null);
   }
 
   const user = await auth0.getUser();
-  const token = await auth0.getTokenSilently();
+  const token = await auth0.getIdTokenClaims();
 
-  user.accessToken = token;
+  user.accessToken = token.__raw;
 
   app.ports.setAuthState.send(user);
 }
@@ -62,4 +61,4 @@ window.onload = async () => {
   }
 
   setAuthState();
-}
+};

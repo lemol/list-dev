@@ -228,7 +228,7 @@ rightContent open authState =
         NotAuthenticated ->
             signInButton
 
-        Authenticated user ->
+        Authenticated user _ ->
             userAvatar open user
 
 

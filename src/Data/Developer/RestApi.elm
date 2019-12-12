@@ -1,17 +1,10 @@
-module Data.Developer.RestApi exposing (DeveloperListWebData, fetchDeveloperList, fetchLanguageList)
+module Data.Developer.RestApi exposing (fetchDeveloperList, fetchLanguageList)
 
+import Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, Sort(..))
 import Http
 import Json.Decode as Decode
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Url exposing (percentEncode)
-import Data.Developer exposing (Developer, Sort(..), Language)
-
--- TYPES
-
-
-
-type alias DeveloperListWebData =
-    WebData (List Developer)
 
 
 

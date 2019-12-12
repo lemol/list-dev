@@ -1,7 +1,7 @@
-module Data.Developer exposing (fetchDeveloperList, fetchLanguageList)
+module Data.Developer.Api exposing (fetchDeveloperList, fetchLanguageList)
 
+import Data.Developer exposing (DeveloperListWebData, Language, LanguageListWebData, Sort)
 import Data.Developer.RestApi as RestApi
-import Data.Developer exposing (Sort, Language, DeveloperListWebData, LanguageListWebData)
 
 
 
