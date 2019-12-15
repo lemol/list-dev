@@ -1,13 +1,17 @@
 module Data.Developer.Graphql exposing (fetchDeveloperList)
 
-import Data.Developer exposing (Developer, DeveloperListWebData, Language, RemoteError(..), Sort(..))
+import Data.Developer exposing (Developer, DeveloperListWebData, Language, RemoteError(..), Repository, Sort(..))
 import Github.Enum.SearchType as SearchType
 import Github.Object
+import Github.Object.PinnableItemConnection as PinnableItemConnection
+import Github.Object.ProfileItemShowcase as ProfileItemShowcase
+import Github.Object.Repository as Repository
 import Github.Object.SearchResultItemConnection
 import Github.Object.User as User
 import Github.Query
 import Github.Scalar exposing (Uri(..))
 import Github.Union
+import Github.Union.PinnableItem as PinnableItem
 import Github.Union.SearchResultItem
 import Global exposing (AccessToken)
 import Graphql.Http
@@ -15,7 +19,6 @@ import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import RemoteData exposing (RemoteData(..))
-import Url exposing (percentEncode)
 
 
 
@@ -50,7 +53,35 @@ developerSelection =
         (SelectionSet.map (\(Uri url) -> url) (User.avatarUrl identity))
         (SelectionSet.map (\(Uri url) -> url) User.url)
         (SelectionSet.map (\(Uri url) -> url) User.url)
-        (SelectionSet.succeed Nothing)
+        (SelectionSet.map List.head (User.itemShowcase decodeProfileShowcase))
+
+
+decodeProfileShowcase : SelectionSet (List Repository) Github.Object.ProfileItemShowcase
+decodeProfileShowcase =
+    ProfileItemShowcase.items (\optional -> { optional | first = Present 20 })
+        (PinnableItemConnection.nodes decodePinnableItem)
+        |> SelectionSet.map (Maybe.withDefault [])
+        |> SelectionSet.map (List.filterMap identity)
+        |> SelectionSet.map (List.filterMap identity)
+
+
+decodePinnableItem : SelectionSet (Maybe Repository) Github.Union.PinnableItem
+decodePinnableItem =
+    let
+        maybeFragments =
+            PinnableItem.maybeFragments
+    in
+    PinnableItem.fragments
+        { maybeFragments
+            | onRepository = SelectionSet.map Just repositorySelection
+        }
+
+
+repositorySelection : SelectionSet Repository Github.Object.Repository
+repositorySelection =
+    SelectionSet.map2 Repository
+        Repository.name
+        (SelectionSet.map (Maybe.withDefault "") Repository.description)
 
 
 
@@ -63,25 +94,25 @@ sortToQueryString sortBy =
         toString sort =
             case sort of
                 BestMatch ->
-                    "&order=desc"
+                    ""
 
                 MostFollowers ->
-                    "&order=desc&sort=followers"
+                    "sort:followers-desc"
 
                 FewestFollowers ->
-                    "&order=asc&sort=followers"
+                    "sort:followers-asc"
 
                 MostRecentlyJoined ->
-                    "&order=desc&sort=joined"
+                    "sort:joined-desc"
 
                 LeastRecentlyJoined ->
-                    "&order=asc&sort=joined"
+                    "sort:joined-asc"
 
                 MostRepositories ->
-                    "&order=desc&sort=repositories"
+                    "sort:repositories-desc"
 
                 FewestRepositories ->
-                    "&order=asc&sort=repositories"
+                    "sort:repositories-asc"
     in
     sortBy
         |> Maybe.withDefault BestMatch
@@ -113,9 +144,8 @@ fetchDeveloperList token sortBy languageFilter toMsg =
         queryString =
             "location:Angola"
                 ++ languageFilterToQueryString languageFilter
-
-        -- ++ sortToQueryString sortBy
-        -- ++ "&per_page=20"
+                ++ " "
+                ++ sortToQueryString sortBy
     in
     query
         |> Graphql.Http.queryRequest "/api/github-graphql.ts"

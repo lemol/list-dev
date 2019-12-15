@@ -34,13 +34,13 @@ async function getSigninKey(kid: string) {
 }
 
 async function verifyAuth0UserToken(token: string) {
-  const decodedToken = jwt.decode(token, { complete: true });
+  const decodedToken = jwt.decode(token, { complete: true }) as any;
   const kid = decodedToken.header.kid;
 
-  const signinKey = await getSigninKey(kid);
+  const signinKey = (await getSigninKey(kid)) as any;
 
   const options = {
-    alg: "RS256"
+    algorithms: ["RS256"]
   };
 
   return new Promise((resolve, reject) => {
@@ -87,24 +87,36 @@ async function getGithubToken(userId, adminToken) {
     .map(x => x.access_token)[0];
 }
 
-function makeGithubLink(token) {
+function makeGithubLink(token: string | null) {
+  const authorization = token ? { authorization: `Bearer ${token}` } : {};
+
   return createHttpLink({
     uri: `https://api.github.com/graphql`,
     fetch: fetch as any,
     headers: {
-      Authorization: `Bearer ${token}`
+      ...authorization
     }
   });
 }
 
-export = async (req: NowRequest, res: NowResponse) => {
-  const userAccessToken = req.headers.authorization.substring(7);
+async function makeGithubToken(accessToken: string) {
   const adminToken = await getAuth0AdminToken();
-  const user = await verifyAuth0UserToken(userAccessToken);
+  const user = await verifyAuth0UserToken(accessToken);
   const githubToken = await getGithubToken((user as any).sub, adminToken);
 
+  return githubToken;
+}
+
+export = async (req: NowRequest, res: NowResponse) => {
+  const accessToken =
+    req.headers.authorization && req.headers.authorization.substring(7);
+  const githubToken = accessToken && (await makeGithubToken(accessToken));
+
   const githubIntrospectionSchema = makeExecutableSchema({
-    typeDefs: githubSchema.idl
+    typeDefs: githubSchema.idl,
+    resolverValidationOptions: {
+      requireResolversForResolveType: false
+    }
   });
 
   const githubExecutableSchema = makeRemoteExecutableSchema({
@@ -118,6 +130,5 @@ export = async (req: NowRequest, res: NowResponse) => {
     playground: false
   });
 
-  console.log(githubToken);
   return server.createHandler({ path: "/api/github-graphql.ts" })(req, res);
 };

@@ -359,7 +359,12 @@ developerListItemView device count developer =
             , spacing 8
             ]
             [ link
-                [ htmlAttribute <| target "_blank" ]
+                [ htmlAttribute <| target "_blank"
+                , responsive device
+                    { desktop = width <| px 300
+                    , phone = htmlAttribute <| Html.Attributes.classList []
+                    }
+                ]
                 { url = developer.htmlUrl
                 , label =
                     column

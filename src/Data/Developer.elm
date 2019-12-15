@@ -1,4 +1,4 @@
-module Data.Developer exposing (Developer, DeveloperListWebData, RemoteError(..), Language, LanguageListWebData, Sort(..), languageToString, languageValues, sortToString, sortValues)
+module Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, RemoteError(..), Repository, Sort(..), languageToString, languageValues, sortToString, sortValues)
 
 import Graphql.Http
 import Http
@@ -98,4 +98,3 @@ sortToString sort =
 
         FewestRepositories ->
             "Fewest repositories"
-

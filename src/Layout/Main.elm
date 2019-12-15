@@ -278,6 +278,7 @@ userMenu user =
 
         itemAttr2 =
             [ centerY
+            , width fill
             , paddingXY 16 4
             ]
     in
