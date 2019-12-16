@@ -30,6 +30,8 @@
 
 - [x] **UI Playground** with [UI Explorer](https://github.com/kalutheo/elm-ui-explorer)
 
+- [ ] **PWA**
+
 ## Running
 
 ```sh
