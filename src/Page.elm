@@ -1,4 +1,4 @@
-module Page exposing (Model, Msg(..), enterRoute, init, update, view)
+module Page exposing (Model, Msg(..), enterRoute, init, onSetAuth, update, view)
 
 import Element exposing (..)
 import Global
@@ -106,6 +106,12 @@ update msg global model =
             , Cmd.map RepoListMsg cmd
             , globalMsg
             )
+
+
+onSetAuth : Global.AuthState -> Cmd Msg
+onSetAuth auth =
+    Cmd.batch
+        [ Cmd.map DevListMsg DevList.onSetAuth ]
 
 
 

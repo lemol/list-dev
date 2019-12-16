@@ -1,4 +1,4 @@
-module Pages.DeveloperList exposing (Model, Msg, init, languageMenuPopup, sortMenuPopup, update, view)
+module Pages.DeveloperList exposing (Model, Msg, init, languageMenuPopup, onSetAuth, sortMenuPopup, update, view)
 
 import Data.Developer exposing (..)
 import Data.Developer.Api exposing (..)
@@ -191,6 +191,11 @@ update msg global model =
             , cmd
             , globalMsg
             )
+
+
+onSetAuth : Model -> Global.AuthState -> Cmd Msg
+onSetAuth { sort, language } auth =
+    fetchDeveloperList auth sort language FetchDeveloperListResponse
 
 
 

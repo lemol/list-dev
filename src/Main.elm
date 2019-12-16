@@ -116,9 +116,20 @@ update msg model =
             let
                 ( newGlobalModel, newGlobalCmd ) =
                     Global.update subMsg model.global
+
+                pageCmd =
+                    case subMsg of
+                        Global.SetAuth auth ->
+                            Page.onSetAuth auth
+
+                        _ ->
+                            Cmd.none
             in
             ( { model | global = newGlobalModel }
-            , Cmd.map GlobalMsg newGlobalCmd
+            , Cmd.batch
+                [ Cmd.map GlobalMsg newGlobalCmd
+                , Cmd.map PageMsg pageCmd
+                ]
             )
 
 
