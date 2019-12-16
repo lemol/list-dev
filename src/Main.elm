@@ -120,7 +120,7 @@ update msg model =
                 pageCmd =
                     case subMsg of
                         Global.SetAuth auth ->
-                            Page.onSetAuth auth
+                            Page.onSetAuth model.page auth
 
                         _ ->
                             Cmd.none

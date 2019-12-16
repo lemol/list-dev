@@ -108,10 +108,13 @@ update msg global model =
             )
 
 
-onSetAuth : Global.AuthState -> Cmd Msg
-onSetAuth auth =
+onSetAuth : Model -> Global.AuthState -> Cmd Msg
+onSetAuth model auth =
     Cmd.batch
-        [ Cmd.map DevListMsg DevList.onSetAuth ]
+        [ model.devList
+            |> Maybe.map (\devList -> Cmd.map DevListMsg (DevList.onSetAuth devList auth))
+            |> Maybe.withDefault Cmd.none
+        ]
 
 
 
