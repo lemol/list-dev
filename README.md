@@ -20,7 +20,7 @@
 
 - [x] Github **Rest** API
 
-- [ ] Github **GraphQL** API
+- [x] Github **GraphQL** API
 
 - [x] **Authentication** with [Auth0](https://auth0.com)
 
