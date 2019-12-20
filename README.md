@@ -1,8 +1,8 @@
-# github-ao-elm
+# DevTrends
 
-> Clone of parts of Github website using [Elm](https://elm-lang.org). **Showcase**: Developers based in Angola building the hot tools on Github.
+> Trending developers on Github: parts of github.com clone using [Elm](https://elm-lang.org) programming language.
 
-**[Live demo](https://github-ao-elm.now.sh)**
+**[Live demo](https://dev-trends.now.sh)**
 
 ## Features
 
@@ -46,10 +46,6 @@ yarn dev     # then open http://localhost:8000
 ## Plus
 
 Ready to use on [Gitpod](https://www.gitpod.io/).
-
-## Acknowledgments
-
-The idea of listing the developers from Angola is based on the showcase from [@flowck](https://github.com/flowck) on his [https://github.com/flowck/angolan-on-github](https://github.com/flowck/angolan-on-github) repository.
 
 ## License
 

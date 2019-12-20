@@ -1,4 +1,4 @@
-module Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, RemoteError(..), Repository, Sort(..), languageToString, languageValues, sortToString, sortValues)
+module Data.Developer exposing (Location, LocationListWebData, Developer, DeveloperListWebData, Language, LanguageListWebData, RemoteError(..), Repository, Sort(..), languageToString, languageValues, sortToString, sortValues, locationValues, locationToString)
 
 import Graphql.Http
 import Http
@@ -46,6 +46,14 @@ type alias Language =
 
 type alias LanguageListWebData =
     WebData (List Language)
+
+
+type alias Location =
+    String
+
+
+type alias LocationListWebData =
+    WebData (List Location)
 
 
 
@@ -98,3 +106,13 @@ sortToString sort =
 
         FewestRepositories ->
             "Fewest repositories"
+
+
+locationValues : LocationListWebData -> Maybe (List Location)
+locationValues =
+    RemoteData.toMaybe
+
+
+locationToString : Location -> String
+locationToString =
+    identity

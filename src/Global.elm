@@ -1,6 +1,7 @@
 port module Global exposing (..)
 
 import Browser.Events
+import Data.Developer exposing (Location)
 import Element exposing (Device, classifyDevice)
 import Json.Decode as D exposing (string)
 import Json.Encode as E
@@ -30,8 +31,10 @@ type alias User =
     , picture : String
     }
 
+
 type alias AccessToken =
     String
+
 
 type AuthState
     = IDLE
@@ -47,6 +50,7 @@ type alias Model =
     { modal : Modal.Model
     , device : Device
     , auth : AuthState
+    , location : Maybe Location
     }
 
 
@@ -65,6 +69,7 @@ type Msg
     | SetAuth AuthState
     | WindowResized Int Int
     | ModalMsg Modal.Msg
+    | ChangeLocation (Maybe Location)
 
 
 
@@ -98,6 +103,11 @@ update msg model =
             , Cmd.map ModalMsg newCmd
             )
 
+        ChangeLocation location ->
+            ( { model | location = location }
+            , Cmd.none
+            )
+
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
@@ -111,6 +121,7 @@ init flags =
     ( { modal = modalModel
       , device = device
       , auth = IDLE
+      , location = Nothing
       }
     , Cmd.batch
         [ Cmd.map ModalMsg modalCmd ]

@@ -43,10 +43,12 @@ type alias Model =
     -- REMOTE DATA
     , developers : DeveloperListWebData
     , languages : LanguageListWebData
+    , locations : LocationListWebData
 
     -- COMPONENTS DATA
     , sortSelectMenu : SelectMenu.State Sort
     , languageSelectMenu : SelectMenu.State Language
+    , locationSelectMenu : SelectMenu.State Location
     }
 
 
@@ -56,8 +58,10 @@ init global =
       , language = Nothing
       , developers = NotAsked
       , languages = NotAsked
+      , locations = NotAsked
       , sortSelectMenu = SelectMenu.init (Just BestMatch)
       , languageSelectMenu = SelectMenu.init Nothing
+      , locationSelectMenu = SelectMenu.init Nothing
       }
     , Cmd.batch
         [ fetchDeveloperList global.auth Nothing Nothing FetchDeveloperListResponse
@@ -73,11 +77,13 @@ init global =
 type Msg
     = ChangeSort (Maybe Sort)
     | ChangeLanguage (Maybe Language)
+    | ChangeLocation (Maybe Location)
     | FetchDeveloperList
     | FetchDeveloperListResponse DeveloperListWebData
     | FetchLanguageListResponse LanguageListWebData
     | SortSelectMsg (SelectMenu.Msg Sort)
     | LanguageSelectMsg (SelectMenu.Msg Language)
+    | LocationSelectMsg (SelectMenu.Msg Location)
 
 
 
@@ -92,6 +98,9 @@ update msg global model =
 
         ChangeLanguage newLanguage ->
             update FetchDeveloperList global { model | language = newLanguage }
+
+        ChangeLocation newLocation ->
+            ( model, Cmd.none, Just <| Global.ChangeLocation newLocation )
 
         FetchDeveloperList ->
             ( model
@@ -192,6 +201,46 @@ update msg global model =
             , globalMsg
             )
 
+        LocationSelectMsg subMsg ->
+            let
+                ( newModel, cmd ) =
+                    SelectMenu.updateState
+                        { changeSelected = Just ChangeLocation
+                        , changeFilter = Nothing
+                        , getter = .locationSelectMenu
+                        , setter = \m s -> { m | locationSelectMenu = s }
+                        , update =
+                            \ms md ->
+                                let
+                                    ( nm, cm, _ ) =
+                                        update ms global md
+                                in
+                                ( nm, cm )
+                        }
+                        subMsg
+                        model
+
+                globalMsg =
+                    responsive global.device
+                        { desktop = Nothing
+                        , phone =
+                            if newModel.locationSelectMenu.open then
+                                Nothing --Just openLanguageModal
+
+                            else
+                                case subMsg of
+                                    SelectMenu.SetSelected _ ->
+                                        Just closeModal
+
+                                    _ ->
+                                        Nothing
+                        }
+            in
+            ( newModel
+            , cmd
+            , globalMsg
+            )
+
 
 onSetAuth : Model -> Global.AuthState -> Cmd Msg
 onSetAuth { sort, language } auth =
@@ -235,6 +284,12 @@ filterView global model =
         , spacingXY 32 16
         ]
         [ SelectMenu.viewButton
+            []
+            { title = "Location:"
+            , defaultText = "Any"
+            , popup = locationMenuPopup global model
+            }
+        , SelectMenu.viewButton
             []
             { title = "Language:"
             , defaultText = "Any"
@@ -463,5 +518,17 @@ languageMenuPopup global model =
     , showFilter = True
     , model = model.languageSelectMenu
     , toMsg = LanguageSelectMsg
+    , device = global.device
+    }
+
+
+locationMenuPopup : Global.Model -> Model -> SelectMenu.SelectMenuPopup Language Msg
+locationMenuPopup global model =
+    { title = "Select a location"
+    , options = locationValues model.locations
+    , toString = locationToString
+    , showFilter = True
+    , model = model.locationSelectMenu
+    , toMsg = LocationSelectMsg
     , device = global.device
     }
