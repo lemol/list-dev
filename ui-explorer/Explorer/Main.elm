@@ -2,6 +2,7 @@ module Explorer.Main exposing (main)
 
 import Explorer.Stories.Buttons as Buttons
 import Explorer.Stories.Icons as Icons
+import Explorer.Stories.Logo as Logo
 import Explorer.Stories.SearchBox as SearchBox
 import Explorer.Stories.SelectMenu as SelectMenu
 import UIExplorer exposing (UIExplorerProgram, explore)
@@ -14,6 +15,7 @@ import UIExplorer exposing (UIExplorerProgram, explore)
 type alias Model =
     { searchBox : SearchBox.Model
     , icons : Icons.Model
+    , logo : Logo.Model
     , buttons : Buttons.Model
     , selectMenu : SelectMenu.Model
     }
@@ -26,6 +28,7 @@ type alias Model =
 type Msg
     = SearchBoxMsg SearchBox.Msg
     | IconsMsg Icons.Msg
+    | LogoMsg Logo.Msg
     | ButtonsMsg Buttons.Msg
     | SelectMenuMsg SelectMenu.Msg
 
@@ -47,6 +50,9 @@ update msg model_ =
         IconsMsg subMsg ->
             updateModel model_ { model | icons = Icons.update subMsg model.icons }
 
+        LogoMsg subMsg ->
+            updateModel model_ { model | logo = Logo.update subMsg model.logo }
+
         ButtonsMsg subMsg ->
             updateModel model_ { model | buttons = Buttons.update subMsg model.buttons }
 
@@ -58,6 +64,7 @@ initModel : Model
 initModel =
     { searchBox = SearchBox.init
     , icons = Icons.init
+    , logo = Logo.init
     , buttons = Buttons.init
     , selectMenu = SelectMenu.init
     }
@@ -71,7 +78,11 @@ main : UIExplorerProgram Model Msg {}
 main =
     explore
         config
-        [ Buttons.stories
+        [ Logo.stories
+            { getModel = .customModel >> .logo
+            , toMsg = LogoMsg
+            }
+        , Buttons.stories
             { getModel = .customModel >> .buttons
             , toMsg = ButtonsMsg
             }

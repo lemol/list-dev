@@ -117,10 +117,12 @@ viewHeaderDesktop model authState =
     let
         logo =
             el
-                [ Font.bold
-                , Font.color <| rgb255 255 255 255
-                ]
-                (text "GithubAO")
+                []
+            <|
+                Icons.logo
+                    [ SvgAttr.width "32px"
+                    , SvgAttr.height "32px"
+                    ]
 
         leftContent =
             row
