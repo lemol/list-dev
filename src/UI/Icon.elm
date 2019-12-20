@@ -53,19 +53,19 @@ logo_ attr =
                 [ x "21.5097", y "21.5093", width "403.981", height "403.981", rx "75", fill "black", stroke "white", strokeWidth "30", strokeLinecap "round", strokeLinejoin "round" ]
                 []
             , rect
-                [ x "150.672", y "363.103", width "26.0388", height "32.3657", fill "white" ]
+                [ x "183.672", y "357.103", width "26.0388", height "32.3657", fill "white" ]
                 []
             , rect
-                [ x "91", y "380.904", width "26.0388", height "14.5646", fill "white" ]
+                [ x "124", y "374.904", width "26.0388", height "14.5646", fill "white" ]
                 []
             , rect
-                [ x "210.345", y "301.608", width "26.0388", height "93.8605", fill "white" ]
+                [ x "243.345", y "295.608", width "26.0388", height "93.8605", fill "white" ]
                 []
             , rect
-                [ x "270.017", y "223.93", width "26.0388", height "171.538", fill "white" ]
+                [ x "303.017", y "217.93", width "26.0388", height "171.538", fill "white" ]
                 []
             , rect
-                [ x "330", y "100", width "26", height "295", fill "white" ]
+                [ x "363", y "94", width "26", height "295", fill "white" ]
                 []
             , Svg.path
                 [ fillRule "evenodd", clipRule "evenodd", d "M130.175 58.4962L130.164 99.0926L224.889 99.0678L224.864 193.793L265.46 193.782L258.728 65.2287L130.175 58.4962V58.4962ZM62.4962 126.175L69.2287 254.728L197.782 261.46L197.793 220.864L103.068 220.889L103.093 126.164L62.4962 126.175V126.175Z", fill "white" ]
