@@ -11,7 +11,7 @@
     "build": "parcel build --out-dir public static/index.html"
   },
   "devDependencies": {
-    "@dillonkearns/elm-graphql": "^3.6.2",
+    "@dillonkearns/elm-graphql": "^4.0.0",
     "@types/jsonwebtoken": "^8.3.5",
     "concurrently": "^5.0.1",
     "elm": "^0.19.1-3",
