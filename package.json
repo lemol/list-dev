@@ -15,10 +15,10 @@
   },
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:dev:api:github\"",
-    "dev:web": "parcel -p 8000 static/index.html",
+    "dev:web": "parcel -p 8000 src/Native/index.html",
     "dev:ui-explorer": "cd ui-explorer && parcel -p 8800 index.html",
     "dev:api:github": "node -r ts-node/register node_modules/.bin/micro-dev ./api/github-graphql.ts",
-    "build": "parcel build --out-dir public static/index.html"
+    "build": "parcel build --out-dir public src/Native/index.html"
   },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^4.0.0",
