@@ -32,7 +32,7 @@
 
 - [x] **UI Playground** with [UI Explorer](https://github.com/kalutheo/elm-ui-explorer)
 
-- [ ] **PWA**
+- [x] **PWA** (manifest, service worker, add to home, etc.)
 
 ## Running
 

@@ -8,5 +8,15 @@
   <body>
     <div id="app"></div>
     <script src="./index.ts"></script>
+    <script>
+      // Check that service workers are supported
+      if ("serviceWorker" in navigator) {
+        // Use the window load event to keep the page load performant
+        var sw = "/service-worker.js";
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register(sw);
+        });
+      }
+    </script>
   </body>
 </html>
