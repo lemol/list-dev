@@ -8,7 +8,7 @@ import { ApolloServer } from "apollo-server-micro";
 import { createHttpLink } from "apollo-link-http";
 import { schema as githubSchema } from "@octokit/graphql-schema";
 import axios from "axios";
-import * as jwksClient from "jwks-rsa";
+import jwksClient from "jwks-rsa";
 import * as jwt from "jsonwebtoken";
 
 let micro: any;
