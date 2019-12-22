@@ -7,7 +7,7 @@
     "name": "DevTrends",
     "shortName": "DevTrends",
     "startURL": "./",
-    "theme": "#000000",
+    "theme": "#24292e",
     "generateIconOptions": {
       "baseIcon": "./static/logo.svg",
       "genFavicons": true
