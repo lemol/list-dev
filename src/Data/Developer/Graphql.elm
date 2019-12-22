@@ -1,6 +1,6 @@
 module Data.Developer.Graphql exposing (fetchDeveloperList)
 
-import Data.Developer exposing (Developer, DeveloperListWebData, Language, RemoteError(..), Repository, Sort(..))
+import Data.Developer exposing (Developer, DeveloperListWebData, Language, Location, RemoteError(..), Repository, Sort(..))
 import Github.Enum.SearchType as SearchType
 import Github.Object
 import Github.Object.PinnableItemConnection as PinnableItemConnection
@@ -126,11 +126,21 @@ languageFilterToQueryString filter =
             ""
 
         Just str ->
-            " language:" ++ str
+            "language:" ++ str
 
 
-fetchDeveloperList : AccessToken -> Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
-fetchDeveloperList token sortBy languageFilter toMsg =
+locationFilterToQueryString : Maybe Location -> String
+locationFilterToQueryString filter =
+    case filter of
+        Nothing ->
+            "followers:>=0"
+
+        Just str ->
+            "location:" ++ str
+
+
+fetchDeveloperList : AccessToken -> Maybe Location -> Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
+fetchDeveloperList token location sortBy languageFilter toMsg =
     let
         query : SelectionSet (List Developer) RootQuery
         query =
@@ -142,12 +152,14 @@ fetchDeveloperList token sortBy languageFilter toMsg =
                 serachResultSelectionSet
 
         queryString =
-            "location:Angola"
-                ++ languageFilterToQueryString languageFilter
-                ++ " "
-                ++ sortToQueryString sortBy
+            [ locationFilterToQueryString location
+            , languageFilterToQueryString languageFilter
+            , sortToQueryString sortBy
+            ]
+                |> List.filter ((/=) "")
+                |> String.join " "
     in
     query
-        |> Graphql.Http.queryRequest "/api/github-graphql.ts"
+        |> Graphql.Http.queryRequest "http://localhost:3000/api/github-graphql.ts"
         |> Graphql.Http.withHeader "authorization" ("Bearer " ++ token)
         |> Graphql.Http.send (RemoteData.fromResult >> RemoteData.mapError GraphqlError >> toMsg)

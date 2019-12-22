@@ -1,4 +1,4 @@
-module Pages.DeveloperList exposing (Model, Msg, init, languageMenuPopup, onSetAuth, sortMenuPopup, update, view)
+module Pages.DeveloperList exposing (Model, Msg, init, languageMenuPopup, locationMenuPopup, onSetAuth, sortMenuPopup, update, view)
 
 import Data.Developer exposing (..)
 import Data.Developer.Api exposing (..)
@@ -64,8 +64,9 @@ init global =
       , locationSelectMenu = SelectMenu.init Nothing
       }
     , Cmd.batch
-        [ fetchDeveloperList global.auth Nothing Nothing FetchDeveloperListResponse
+        [ fetchDeveloperList global.auth global.location Nothing Nothing FetchDeveloperListResponse
         , fetchLanguageList FetchLanguageListResponse
+        , fetchLocationList FetchLocationListResponse
         ]
     )
 
@@ -81,6 +82,7 @@ type Msg
     | FetchDeveloperList
     | FetchDeveloperListResponse DeveloperListWebData
     | FetchLanguageListResponse LanguageListWebData
+    | FetchLocationListResponse LocationListWebData
     | SortSelectMsg (SelectMenu.Msg Sort)
     | LanguageSelectMsg (SelectMenu.Msg Language)
     | LocationSelectMsg (SelectMenu.Msg Location)
@@ -90,7 +92,7 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Global.Model -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
+update : Msg -> Global.Model -> Model -> ( Model, Cmd Msg, List Global.Msg )
 update msg global model =
     case msg of
         ChangeSort newSort ->
@@ -100,61 +102,66 @@ update msg global model =
             update FetchDeveloperList global { model | language = newLanguage }
 
         ChangeLocation newLocation ->
-            ( model, Cmd.none, Just <| Global.ChangeLocation newLocation )
+            ( model
+            , fetchDeveloperList global.auth newLocation model.sort model.language FetchDeveloperListResponse
+            , [ Global.ChangeLocation newLocation ]
+            )
 
         FetchDeveloperList ->
             ( model
               -- Set Loading state??
-            , fetchDeveloperList global.auth model.sort model.language FetchDeveloperListResponse
-            , Nothing
+            , fetchDeveloperList global.auth global.location model.sort model.language FetchDeveloperListResponse
+            , []
             )
 
         FetchDeveloperListResponse response ->
             ( { model | developers = response }
             , Cmd.none
-            , Nothing
+            , []
             )
 
         FetchLanguageListResponse response ->
             ( { model | languages = response }
             , Cmd.none
-            , Nothing
+            , []
+            )
+
+        FetchLocationListResponse response ->
+            ( { model | locations = response }
+            , Cmd.none
+            , []
             )
 
         SortSelectMsg subMsg ->
             let
-                ( newModel, cmd ) =
+                ( newModel1, msgs ) =
                     SelectMenu.updateState
                         { changeSelected = Just ChangeSort
                         , changeFilter = Nothing
                         , getter = .sortSelectMenu
                         , setter = \m s -> { m | sortSelectMenu = s }
-                        , update =
-                            \ms md ->
-                                let
-                                    ( nm, cm, _ ) =
-                                        update ms global md
-                                in
-                                ( nm, cm )
                         }
                         subMsg
                         model
 
-                globalMsg =
+                modalOpenMsg =
                     responsive global.device
-                        { desktop = Nothing
+                        { desktop = []
                         , phone =
-                            if newModel.sortSelectMenu.open then
-                                Just openSortModal
+                            case subMsg of
+                                SelectMenu.SetOpen True ->
+                                    [ openSortModal ]
 
-                            else
-                                case subMsg of
-                                    SelectMenu.SetSelected _ ->
-                                        Just closeModal
+                                SelectMenu.SetSelected _ ->
+                                    [ closeModal ]
 
-                                    _ ->
-                                        Nothing
+                                _ ->
+                                    []
                         }
+
+                ( newModel, cmd, globalMsg ) =
+                    msgs
+                        |> List.foldl (foldUpdate global) ( newModel1, Cmd.none, modalOpenMsg )
             in
             ( newModel
             , cmd
@@ -163,38 +170,34 @@ update msg global model =
 
         LanguageSelectMsg subMsg ->
             let
-                ( newModel, cmd ) =
+                ( newModel1, msgs ) =
                     SelectMenu.updateState
                         { changeSelected = Just ChangeLanguage
                         , changeFilter = Nothing
                         , getter = .languageSelectMenu
                         , setter = \m s -> { m | languageSelectMenu = s }
-                        , update =
-                            \ms md ->
-                                let
-                                    ( nm, cm, _ ) =
-                                        update ms global md
-                                in
-                                ( nm, cm )
                         }
                         subMsg
                         model
 
-                globalMsg =
+                modalOpenMsg =
                     responsive global.device
-                        { desktop = Nothing
+                        { desktop = []
                         , phone =
-                            if newModel.languageSelectMenu.open then
-                                Just openLanguageModal
+                            case subMsg of
+                                SelectMenu.SetOpen True ->
+                                    [ openLanguageModal ]
 
-                            else
-                                case subMsg of
-                                    SelectMenu.SetSelected _ ->
-                                        Just closeModal
+                                SelectMenu.SetSelected _ ->
+                                    [ closeModal ]
 
-                                    _ ->
-                                        Nothing
+                                _ ->
+                                    []
                         }
+
+                ( newModel, cmd, globalMsg ) =
+                    msgs
+                        |> List.foldl (foldUpdate global) ( newModel1, Cmd.none, modalOpenMsg )
             in
             ( newModel
             , cmd
@@ -203,38 +206,34 @@ update msg global model =
 
         LocationSelectMsg subMsg ->
             let
-                ( newModel, cmd ) =
+                ( newModel1, msgs ) =
                     SelectMenu.updateState
                         { changeSelected = Just ChangeLocation
                         , changeFilter = Nothing
                         , getter = .locationSelectMenu
                         , setter = \m s -> { m | locationSelectMenu = s }
-                        , update =
-                            \ms md ->
-                                let
-                                    ( nm, cm, _ ) =
-                                        update ms global md
-                                in
-                                ( nm, cm )
                         }
                         subMsg
                         model
 
-                globalMsg =
+                modalOpenMsg =
                     responsive global.device
-                        { desktop = Nothing
+                        { desktop = []
                         , phone =
-                            if newModel.locationSelectMenu.open then
-                                Nothing --Just openLanguageModal
+                            case subMsg of
+                                SelectMenu.SetOpen True ->
+                                    [ openLocationModal ]
 
-                            else
-                                case subMsg of
-                                    SelectMenu.SetSelected _ ->
-                                        Just closeModal
+                                SelectMenu.SetSelected _ ->
+                                    [ closeModal ]
 
-                                    _ ->
-                                        Nothing
+                                _ ->
+                                    []
                         }
+
+                ( newModel, cmd, globalMsg ) =
+                    msgs
+                        |> List.foldl (foldUpdate global) ( newModel1, Cmd.none, modalOpenMsg )
             in
             ( newModel
             , cmd
@@ -242,9 +241,21 @@ update msg global model =
             )
 
 
-onSetAuth : Model -> Global.AuthState -> Cmd Msg
-onSetAuth { sort, language } auth =
-    fetchDeveloperList auth sort language FetchDeveloperListResponse
+foldUpdate : Global.Model -> Msg -> ( Model, Cmd Msg, List Global.Msg ) -> ( Model, Cmd Msg, List Global.Msg )
+foldUpdate modelGlobal msgAct ( modelAcc, cmdAcc, globalMsgAcc ) =
+    let
+        ( newModelAct, newCmdAct, globalMsgAct ) =
+            update msgAct modelGlobal modelAcc
+    in
+    ( newModelAct
+    , Cmd.batch [ cmdAcc, newCmdAct ]
+    , globalMsgAcc ++ globalMsgAct
+    )
+
+
+onSetAuth : Global.Model -> Model -> Global.AuthState -> Cmd Msg
+onSetAuth { location } { sort, language } auth =
+    fetchDeveloperList auth location sort language FetchDeveloperListResponse
 
 
 
@@ -258,7 +269,13 @@ view config mainLayoutModel layoutModel global model =
         , mainLayoutToMsg = config.mainLayoutToMsg
         , page =
             { title = "Developers"
-            , subTitle = "These are the developers based in Angola building the hot tools on Github."
+            , subTitle =
+                "These are the developers"
+                    ++ (global.location
+                            |> Maybe.map ((++) " based in ")
+                            |> Maybe.withDefault ""
+                       )
+                    ++ " building the hot tools on Github."
             , page = Layout.Developers
             , filter = filterView global model |> (Element.map config.toMsg >> Just)
             , body = body global model |> Element.map config.toMsg
@@ -305,10 +322,10 @@ filterView global model =
 
 
 body : Global.Model -> Model -> Element Msg
-body { device } model =
+body { device, location } model =
     case model.developers of
         Success [] ->
-            emptyListView model.language
+            emptyListView location model.language
 
         Success developers ->
             developerListView device developers
@@ -323,11 +340,15 @@ body { device } model =
             none
 
 
-emptyListView : Maybe Language -> Element msg
-emptyListView language =
+emptyListView : Maybe Location -> Maybe Language -> Element msg
+emptyListView location language =
     let
         lang =
             Maybe.withDefault "Any Language" language
+        loc =
+            location
+            |> Maybe.map ((++) " in ")
+            |> Maybe.withDefault ""
     in
     column
         [ centerX
@@ -342,7 +363,7 @@ emptyListView language =
             , Font.semiBold
             , Font.size 20
             ]
-            [ text <| "It looks like there is not any developer in Angola for " ++ lang ++ "." ]
+            [ text <| "It looks like there is not any developer" ++ loc ++ " for " ++ lang ++ "." ]
         , paragraph
             [ centerX
             , Font.size 14
@@ -492,6 +513,11 @@ openSortModal =
 openLanguageModal : Global.Msg
 openLanguageModal =
     openModal Modal.DevListLanguage
+
+
+openLocationModal : Global.Msg
+openLocationModal =
+    openModal Modal.DevListLocation
 
 
 

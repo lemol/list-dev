@@ -41,7 +41,6 @@ type alias UpdaterConfig value model msg =
     , changeFilter : Maybe (String -> msg)
     , getter : model -> State value
     , setter : model -> State value -> model
-    , update : msg -> model -> ( model, Cmd msg )
     }
 
 
@@ -81,7 +80,7 @@ type Msg value
 -- UPDATE
 
 
-updateState : UpdaterConfig value model msg -> Msg value -> model -> ( model, Cmd msg )
+updateState : UpdaterConfig value model msg -> Msg value -> model -> ( model, List msg )
 updateState ({ getter, setter } as config) subMsg model =
     let
         ( selectMenuState, msgs ) =
@@ -89,22 +88,9 @@ updateState ({ getter, setter } as config) subMsg model =
                 config
                 subMsg
                 (getter model)
-
-        foldMsgs msgAct ( modelAcc, cmdAcc ) =
-            let
-                ( newModelAct, newCmdAct ) =
-                    config.update msgAct modelAcc
-            in
-            ( newModelAct
-            , Cmd.batch [ cmdAcc, newCmdAct ]
-            )
-
-        ( newModel, newCmds ) =
-            msgs
-                |> List.foldl foldMsgs ( model, Cmd.none )
     in
-    ( setter newModel selectMenuState
-    , newCmds
+    ( setter model selectMenuState
+    , msgs
     )
 
 

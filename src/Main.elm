@@ -91,25 +91,19 @@ update msg model =
 
         PageMsg subMsg ->
             let
-                ( newPageModel, newPageCmd, globalMsg_ ) =
+                ( newPageModel, newPageCmd, globalMsgs ) =
                     Page.update subMsg model.global model.page
 
                 pageUpdated =
                     { model | page = newPageModel }
 
                 ( newModel, newCmd ) =
-                    case globalMsg_ of
-                        Nothing ->
-                            ( pageUpdated, Cmd.none )
-
-                        Just globalMsg ->
-                            update (GlobalMsg globalMsg) pageUpdated
+                    globalMsgs
+                        |> List.map GlobalMsg
+                        |> List.foldl foldUpdate ( pageUpdated, Cmd.map PageMsg newPageCmd )
             in
             ( newModel
-            , Cmd.batch
-                [ Cmd.map PageMsg newPageCmd
-                , newCmd
-                ]
+            , newCmd
             )
 
         GlobalMsg subMsg ->
@@ -120,7 +114,7 @@ update msg model =
                 pageCmd =
                     case subMsg of
                         Global.SetAuth auth ->
-                            Page.onSetAuth model.page auth
+                            Page.onSetAuth model.global model.page auth
 
                         _ ->
                             Cmd.none
@@ -131,6 +125,17 @@ update msg model =
                 , Cmd.map PageMsg pageCmd
                 ]
             )
+
+
+foldUpdate : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+foldUpdate msgAct ( modelAcc, cmdAcc ) =
+    let
+        ( newModelAct, newCmdAct ) =
+            update msgAct modelAcc
+    in
+    ( newModelAct
+    , Cmd.batch [ cmdAcc, newCmdAct ]
+    )
 
 
 

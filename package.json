@@ -1,14 +1,12 @@
 {
-  "name": "angolans-on-github",
+  "name": "dev-trends",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
     "dev:web": "parcel -p 8000 static/index.html",
     "dev:ui-explorer": "cd ui-explorer && parcel -p 8800 index.html",
-    "dev:micro": "concurrently \"npm:build:micro:github\" \"npm:micro:github\"",
-    "micro:github": "micro-dev api/dist/github-graphql.js",
-    "build:micro:github": "tsc -w api/github-graphql.ts --outDir api/dist",
+    "dev:api:github": "node -r ts-node/register node_modules/.bin/micro-dev ./api/github-graphql.ts",
     "build": "parcel build --out-dir public static/index.html"
   },
   "devDependencies": {
@@ -25,6 +23,7 @@
     "node-elm-compiler": "^5.0.4",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-static-files-copy": "^2.2.1",
+    "ts-node": "^8.5.4",
     "typescript": "^3.7.3"
   },
   "dependencies": {
@@ -39,6 +38,8 @@
     "graphql-tools": "^4.0.6",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.6.0",
+    "micro": "^9.3.4",
+    "micro-cors": "^0.1.1",
     "node-fetch": "^2.6.0"
   }
 }

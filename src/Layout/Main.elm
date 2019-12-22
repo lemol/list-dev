@@ -92,7 +92,7 @@ view : PageConfig msg -> Global.Model -> Model -> Document msg
 view { content, toMsg } global model =
     let
         title =
-            Maybe.withDefault "GithubAO" content.title
+            Maybe.withDefault "dev-trends" content.title
 
         body =
             column
@@ -171,10 +171,12 @@ viewHeaderMobile open authState =
     let
         logo =
             el
-                [ Font.bold
-                , Font.color <| rgb255 255 255 255
-                ]
-                (text "GithubAO")
+                []
+            <|
+                Icons.logo
+                    [ SvgAttr.width "32px"
+                    , SvgAttr.height "32px"
+                    ]
 
         center =
             el
@@ -392,5 +394,5 @@ menuView =
     in
     row
         []
-        [ menuItem "https://github.com/lemol/github-ao-elm" "Source code"
+        [ menuItem "https://github.com/lemol/dev-trends" "Source code"
         ]

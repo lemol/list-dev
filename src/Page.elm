@@ -52,7 +52,7 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Global.Model -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
+update : Msg -> Global.Model -> Model -> ( Model, Cmd Msg, List Global.Msg )
 update msg global model =
     case msg of
         MainLayoutMsg subMsg ->
@@ -65,7 +65,7 @@ update msg global model =
             in
             ( { model | mainLayout = newModel }
             , Cmd.map MainLayoutMsg cmd
-            , Nothing
+            , []
             )
 
         TrendingLayoutMsg subMsg ->
@@ -78,7 +78,7 @@ update msg global model =
             in
             ( { model | trendingLayout = newModel }
             , Cmd.map TrendingLayoutMsg cmd
-            , Nothing
+            , []
             )
 
         DevListMsg subMsg ->
@@ -87,7 +87,7 @@ update msg global model =
                     model.devList
                         |> Maybe.map (DevList.update subMsg global)
                         |> Maybe.map (mapFirst Just)
-                        |> Maybe.withDefault ( Nothing, Cmd.none, Nothing )
+                        |> Maybe.withDefault ( Nothing, Cmd.none, [] )
             in
             ( { model | devList = newModel }
             , Cmd.map DevListMsg cmd
@@ -100,7 +100,7 @@ update msg global model =
                     model.repoList
                         |> Maybe.map (RepoList.update subMsg)
                         |> Maybe.map (mapFirst Just)
-                        |> Maybe.withDefault ( Nothing, Cmd.none, Nothing )
+                        |> Maybe.withDefault ( Nothing, Cmd.none, [] )
             in
             ( { model | repoList = newModel }
             , Cmd.map RepoListMsg cmd
@@ -108,11 +108,11 @@ update msg global model =
             )
 
 
-onSetAuth : Model -> Global.AuthState -> Cmd Msg
-onSetAuth model auth =
+onSetAuth : Global.Model -> Model -> Global.AuthState -> Cmd Msg
+onSetAuth global model auth =
     Cmd.batch
         [ model.devList
-            |> Maybe.map (\devList -> Cmd.map DevListMsg (DevList.onSetAuth devList auth))
+            |> Maybe.map (\devList -> Cmd.map DevListMsg (DevList.onSetAuth global devList auth))
             |> Maybe.withDefault Cmd.none
         ]
 

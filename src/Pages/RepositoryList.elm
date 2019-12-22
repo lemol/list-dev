@@ -47,11 +47,11 @@ type Msg
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, Maybe Global.Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, List Global.Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( model, Cmd.none, Nothing )
+            ( model, Cmd.none, [] )
 
 
 
@@ -65,7 +65,13 @@ view config mainLayoutModel layoutModel global model =
         , mainLayoutToMsg = config.mainLayoutToMsg
         , page =
             { title = "Repositories"
-            , subTitle = "See what the GitHub community from Angola is most excited about."
+            , subTitle =
+                "See what the Github community"
+                    ++ (global.location
+                            |> Maybe.map ((++) " from ")
+                            |> Maybe.withDefault ""
+                       )
+                    ++ " is most excited about."
             , page = Layout.Repositories
             , filter = Nothing
             , body = body global model |> Element.map config.toMsg
@@ -77,7 +83,7 @@ view config mainLayoutModel layoutModel global model =
 
 
 body : Global.Model -> Model -> Element Msg
-body _ _ =
+body { location } _ =
     column
         [ centerX
         , centerY
@@ -91,7 +97,13 @@ body _ _ =
             , Font.semiBold
             , Font.size 20
             ]
-            [ text "Get to know the Open Source community from Angola" ]
+            [ text <|
+                "Get to know the Open Source community"
+                    ++ (location
+                            |> Maybe.map ((++) " from ")
+                            |> Maybe.withDefault ""
+                       )
+            ]
         , paragraph
             [ Font.center
             , Font.size 14

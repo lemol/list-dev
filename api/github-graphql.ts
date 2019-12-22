@@ -8,8 +8,16 @@ import { ApolloServer } from "apollo-server-micro";
 import { createHttpLink } from "apollo-link-http";
 import { schema as githubSchema } from "@octokit/graphql-schema";
 import axios from "axios";
-import jwksClient from "jwks-rsa";
+import * as jwksClient from "jwks-rsa";
 import * as jwt from "jsonwebtoken";
+
+let micro: any;
+let cors: any;
+
+if (!process.env.NOW_REGION) {
+  micro = require("micro");
+  cors = require("micro-cors")();
+}
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 
@@ -130,5 +138,21 @@ export = async (req: NowRequest, res: NowResponse) => {
     playground: false
   });
 
-  return server.createHandler({ path: "/api/github-graphql.ts" })(req, res);
+  const handler = server.createHandler({ path: "/api/github-graphql.ts" });
+
+  return makeHandler(handler)(req, res);
 };
+
+function makeHandler(handler) {
+  if (!micro) {
+    return handler;
+  }
+
+  return cors((req, res) => {
+    if (req.method === "OPTIONS") {
+      return micro.send(res, 200, "ok");
+    }
+
+    return handler(req, res);
+  });
+}

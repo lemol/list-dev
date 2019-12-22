@@ -25,6 +25,9 @@ view model =
         Just DevListLanguage ->
             viewModal (viewDevListLanguage model) model
 
+        Just DevListLocation ->
+            viewModal (viewDevListLocation model) model
+
 
 viewModal : Element Msg -> Model -> Element Msg
 viewModal content _ =
@@ -67,6 +70,19 @@ viewDevListLanguage model =
             SelectMenu.viewPopup
                 [ centerX, centerY ]
                 (DevListPage.languageMenuPopup model.global page)
+                |> Element.map (Page.DevListMsg >> PageMsg)
+
+
+viewDevListLocation : Model -> Element Msg
+viewDevListLocation model =
+    case model.page.devList of
+        Nothing ->
+            Element.none
+
+        Just page ->
+            SelectMenu.viewPopup
+                [ centerX, centerY ]
+                (DevListPage.locationMenuPopup model.global page)
                 |> Element.map (Page.DevListMsg >> PageMsg)
 
 

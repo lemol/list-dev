@@ -1,6 +1,6 @@
-module Data.Developer.RestApi exposing (fetchDeveloperList, fetchLanguageList)
+module Data.Developer.RestApi exposing (fetchDeveloperList, fetchLanguageList, fetchLocationList)
 
-import Data.Developer exposing (Developer, DeveloperListWebData, RemoteError(..), Language, LanguageListWebData, Sort(..))
+import Data.Developer exposing (Developer, DeveloperListWebData, Language, LanguageListWebData, Location, LocationListWebData, RemoteError(..), Sort(..))
 import Http
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..))
@@ -35,6 +35,16 @@ languageDecoder =
 languageListDecoder : Decode.Decoder (List Language)
 languageListDecoder =
     Decode.list languageDecoder
+
+
+locationDecoder : Decode.Decoder Location
+locationDecoder =
+    Decode.field "name" Decode.string
+
+
+locationListDecoder : Decode.Decoder (List Location)
+locationListDecoder =
+    Decode.list locationDecoder
 
 
 
@@ -79,15 +89,31 @@ languageFilterToQueryString filter =
             ""
 
         Just str ->
-            "+language:" ++ percentEncode str
+            "language:" ++ percentEncode str
 
 
-fetchDeveloperList : Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
-fetchDeveloperList sortBy languageFilter toMsg =
+locationFilterToQueryString : Maybe Location -> String
+locationFilterToQueryString filter =
+    case filter of
+        Nothing ->
+            ""
+
+        Just str ->
+            "location:" ++ percentEncode str
+
+
+fetchDeveloperList : Maybe Location -> Maybe Sort -> Maybe Language -> (DeveloperListWebData -> msg) -> Cmd msg
+fetchDeveloperList location sortBy languageFilter toMsg =
     let
         usersUrl =
-            "https://api.github.com/search/users?q=location:Angola+type:user"
-                ++ languageFilterToQueryString languageFilter
+            "https://api.github.com/search/users?q="
+                ++ ([ locationFilterToQueryString location
+                    , languageFilterToQueryString languageFilter
+                    , "type:user"
+                    ]
+                        |> List.filter ((/=) "")
+                        |> String.join "+"
+                   )
                 ++ sortToQueryString sortBy
                 ++ "&per_page=20"
     in
@@ -102,4 +128,12 @@ fetchLanguageList toMsg =
     Http.get
         { url = "languages.json"
         , expect = Http.expectJson (RemoteData.fromResult >> toMsg) languageListDecoder
+        }
+
+
+fetchLocationList : (LocationListWebData -> msg) -> Cmd msg
+fetchLocationList toMsg =
+    Http.get
+        { url = "locations.json"
+        , expect = Http.expectJson (RemoteData.fromResult >> toMsg) locationListDecoder
         }

@@ -2,9 +2,6 @@
   "[elm]": {
     "editor.formatOnSave": true
   },
-  "elm.compiler": "./node_modules/.bin/elm",
-  "elm.formatCommand": "./node_modules/.bin/elm-format",
-  "elm.analyseCommand": "./node_modules/.bin/elm-analyse",
   "workbench.colorCustomizations": {
     "tab.unfocusedActiveBorder": "#fff0"
   },
@@ -57,6 +54,6 @@
     "**/.tern-port": true,
     "**/dist": true,
     "**/material-ui": true
-},
-"typescript.tsdk": "node_modules/typescript/lib"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

@@ -81,8 +81,15 @@ view config layoutModel global model =
 
 
 viewContent : PageConfig msg -> Global.Model -> Model -> MainLayout.ViewData msg
-viewContent config { device } _ =
-    { title = Just <| "Trending " ++ config.page.title ++ " from Angola"
+viewContent config { device, location } _ =
+    { title =
+        Just <|
+            "Trending "
+                ++ config.page.title
+                ++ (location
+                        |> Maybe.map ((++) " based in ")
+                        |> Maybe.withDefault ""
+                   )
     , top = Just <| headerView config
     , main = Just <| mainSectionView config device
     }

@@ -12,6 +12,8 @@
 
 - [x] 🚆 **Navigation**
 
+- [x] **SPA**
+
 - [x] 🚀 Zero configuration **deployment** on [ZEIT Now](https://zeit.co/guides/upgrade-to-zero-configuration/). Automated deployment on commit to Github.
 
 - [x] JS **interop** using [Typescript](https://github.com/dillonkearns/elm-typescript-interop)
