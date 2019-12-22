@@ -160,6 +160,7 @@ fetchDeveloperList token location sortBy languageFilter toMsg =
                 |> String.join " "
     in
     query
-        |> Graphql.Http.queryRequest "http://localhost:3000/api/github-graphql.ts"
+        |> Graphql.Http.queryRequest "/api/github-graphql.ts"
+        -- "http://localhost:3000/api/github-graphql.ts"
         |> Graphql.Http.withHeader "authorization" ("Bearer " ++ token)
         |> Graphql.Http.send (RemoteData.fromResult >> RemoteData.mapError GraphqlError >> toMsg)
