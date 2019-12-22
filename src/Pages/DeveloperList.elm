@@ -345,10 +345,11 @@ emptyListView location language =
     let
         lang =
             Maybe.withDefault "Any Language" language
+
         loc =
             location
-            |> Maybe.map ((++) " in ")
-            |> Maybe.withDefault ""
+                |> Maybe.map ((++) " in ")
+                |> Maybe.withDefault ""
     in
     column
         [ centerX
@@ -529,7 +530,7 @@ sortMenuPopup global model =
     { title = "Sort options"
     , options = sortValues
     , toString = sortToString
-    , showFilter = False
+    , filterText = Nothing
     , model = model.sortSelectMenu
     , toMsg = SortSelectMsg
     , device = global.device
@@ -541,7 +542,7 @@ languageMenuPopup global model =
     { title = "Select a language"
     , options = languageValues model.languages
     , toString = languageToString
-    , showFilter = True
+    , filterText = Just "Filter languages"
     , model = model.languageSelectMenu
     , toMsg = LanguageSelectMsg
     , device = global.device
@@ -553,7 +554,7 @@ locationMenuPopup global model =
     { title = "Select a location"
     , options = locationValues model.locations
     , toString = locationToString
-    , showFilter = True
+    , filterText = Just "Filter locations"
     , model = model.locationSelectMenu
     , toMsg = LocationSelectMsg
     , device = global.device

@@ -59,7 +59,7 @@ stories =
                 SelectMenu.viewButton [ Element.centerX ]
                     { title = "Sort:"
                     , defaultText = "Select"
-                    , popup = selectMenuPopup False False
+                    , popup = selectMenuPopup False Nothing
                     }
           )
         , ( "Open"
@@ -67,7 +67,7 @@ stories =
                 SelectMenu.viewButton [ Element.centerX ]
                     { title = "Sort:"
                     , defaultText = "Select"
-                    , popup = selectMenuPopup True False
+                    , popup = selectMenuPopup True Nothing
                     }
           )
         , ( "With Filters"
@@ -75,7 +75,7 @@ stories =
                 SelectMenu.viewButton [ Element.centerX ]
                     { title = "Sort:"
                     , defaultText = "Select"
-                    , popup = selectMenuPopup True True
+                    , popup = selectMenuPopup True (Just "Filter sort...")
                     }
           )
         ]
@@ -85,16 +85,16 @@ stories =
 -- UTILS
 
 
-selectMenuPopup : Bool -> Bool -> SelectMenu.SelectMenuPopup String Msg
-selectMenuPopup open showFilter =
+selectMenuPopup : Bool -> Maybe String -> SelectMenu.SelectMenuPopup String Msg
+selectMenuPopup open filterText =
     { title = "Sort options"
-    , options = Just [ "OK", "OK2", "OK3" ]
-    , toString = always "OK"
-    , showFilter = showFilter
+    , options = Just [ "OK1", "OK2", "OK3" ]
+    , toString = identity
+    , filterText = filterText
     , model =
         let
             init2 =
-                SelectMenu.init (Just "OK")
+                SelectMenu.init (Just "OK1")
         in
         { init2 | open = open }
     , toMsg = always NoOp

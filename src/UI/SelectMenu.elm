@@ -29,7 +29,7 @@ type alias SelectMenuPopup value msg =
     { title : String
     , options : Maybe (List value)
     , toString : value -> String
-    , showFilter : Bool
+    , filterText : Maybe String
     , model : State value
     , device : Device
     , toMsg : Msg value -> msg
@@ -197,7 +197,7 @@ viewButton attrs { title, defaultText, popup } =
 
 
 viewPopup : List (Attribute msg) -> SelectMenuPopup value msg -> Element msg
-viewPopup attrs { title, options, toString, model, showFilter, toMsg } =
+viewPopup attrs { title, options, toString, model, filterText, toMsg } =
     let
         listTitle =
             el
@@ -217,7 +217,7 @@ viewPopup attrs { title, options, toString, model, showFilter, toMsg } =
                 ]
                 (el [ centerY ] <| text title)
 
-        filterBox =
+        filterBox filterText_ =
             el
                 [ width fill
                 , padding 10
@@ -248,8 +248,8 @@ viewPopup attrs { title, options, toString, model, showFilter, toMsg } =
                         }
                     ]
                     { text = model.filter
-                    , placeholder = Just <| Input.placeholder [ centerY, height fill ] (text "Filter languages")
-                    , label = Input.labelHidden "Filter languages"
+                    , placeholder = Just <| Input.placeholder [ centerY, height fill ] (text filterText_)
+                    , label = Input.labelHidden filterText_
                     , onChange = SetFilter
                     }
 
@@ -323,11 +323,9 @@ viewPopup attrs { title, options, toString, model, showFilter, toMsg } =
                     }
                 ]
                 [ listTitle
-                , if showFilter then
-                    filterBox
-
-                  else
-                    Element.none
+                , filterText
+                  |> Maybe.map filterBox
+                  |> Maybe.withDefault Element.none
                 , column
                     [ width fill
                     , height <| maximum 400 fill
