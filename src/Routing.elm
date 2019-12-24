@@ -17,7 +17,7 @@ type Route
 
 routingType : RoutingType
 routingType =
-    HashRouting
+    BrowserRouting
 
 
 parseUrl : Url -> Route
