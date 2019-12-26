@@ -41,45 +41,12 @@ logo_ : List (Attribute msg) -> Html msg
 logo_ attr =
     svg
         ([ viewBox "0 0 447 447", fill "none"] ++ attr)
-        [ g
-            [ Svg.Attributes.clipPath "url(#clip0)" ]
-            [ rect
-                [ y "-0.000335693", width "447", height "447", rx "90", fill "black" ]
-                []
-            , rect
-                [ y "-0.000335693", width "447", height "447", rx "90", stroke "white" ]
-                []
-            , rect
-                [ x "21.5097", y "21.5093", width "403.981", height "403.981", rx "75", fill "black", stroke "white", strokeWidth "30", strokeLinecap "round", strokeLinejoin "round" ]
-                []
-            , rect
-                [ x "183.672", y "357.103", width "26.0388", height "32.3657", fill "white" ]
-                []
-            , rect
-                [ x "124", y "374.904", width "26.0388", height "14.5646", fill "white" ]
-                []
-            , rect
-                [ x "243.345", y "295.608", width "26.0388", height "93.8605", fill "white" ]
-                []
-            , rect
-                [ x "303.017", y "217.93", width "26.0388", height "171.538", fill "white" ]
-                []
-            , rect
-                [ x "363", y "94", width "26", height "295", fill "white" ]
-                []
-            , Svg.path
-                [ fillRule "evenodd", clipRule "evenodd", d "M130.175 58.4962L130.164 99.0926L224.889 99.0678L224.864 193.793L265.46 193.782L258.728 65.2287L130.175 58.4962V58.4962ZM62.4962 126.175L69.2287 254.728L197.782 261.46L197.793 220.864L103.068 220.889L103.093 126.164L62.4962 126.175V126.175Z", fill "white" ]
-                []
-            ]
-        , defs
+        [ Svg.circle
+            [ cx "223.5", cy "223.5", r "223.5", fill "black" ]
             []
-            [ Svg.clipPath
-                [ id "clip0" ]
-                [ rect
-                    [ width "447", height "447", fill "white" ]
-                    []
-                ]
-            ]
+        , Svg.path
+            [ fillRule "evenodd", clipRule "evenodd", d "M284.036 101.605L247.714 137.907L332.464 222.613L247.714 307.319L284.036 343.621L393 222.613L284.036 101.605V101.605ZM162.964 101.605L54 222.613L162.964 343.621L199.286 307.319L114.536 222.613L199.286 137.907L162.964 101.605V101.605Z", fill "white" ]
+            []
         ]
 
 checkIcon : List (Attribute msg) -> Element.Element msg

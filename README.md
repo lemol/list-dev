@@ -1,8 +1,8 @@
-# DevTrends
+# List<Dev>
 
-> Trending developers on Github: parts of github.com clone using [Elm](https://elm-lang.org) programming language.
+> List of developers on Github: parts of github.com clone using [Elm](https://elm-lang.org) programming language.
 
-**[Live demo](https://dev-trends.now.sh)**
+**[Live demo](https://list-dev.now.sh)**
 
 ## Features
 

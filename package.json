@@ -4,8 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "pwaManifest": {
-    "name": "DevTrends",
-    "shortName": "DevTrends",
+    "name": "List of Developers",
+    "shortName": "List<Dev>",
     "startURL": "./",
     "theme": "#24292e",
     "generateIconOptions": {
