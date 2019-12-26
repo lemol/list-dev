@@ -1,6 +1,7 @@
 {
-  "name": "dev-trends",
+  "name": "@lemol/list-dev",
   "version": "1.0.0",
+  "private": true,
   "main": "index.js",
   "license": "MIT",
   "pwaManifest": {
