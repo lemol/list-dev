@@ -1,4 +1,4 @@
-# List<Dev>
+# List\<Dev\>
 
 > List of developers on Github: parts of github.com clone using [Elm](https://elm-lang.org) programming language.
 
