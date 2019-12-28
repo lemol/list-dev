@@ -47,7 +47,7 @@ yarn dev     # then open http://localhost:8000
 
 ## Plus
 
-Ready to use on [Gitpod](https://www.gitpod.io/).
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/lemol/list-dev)
 
 ## License
 
