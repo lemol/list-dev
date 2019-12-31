@@ -34,7 +34,7 @@
     "micro-dev": "3.0.0",
     "node-elm-compiler": "5.0.4",
     "parcel-bundler": "1.12.4",
-    "parcel-plugin-pwa-manifest": "2.8.2",
+    "parcel-plugin-pwa-manifest": "2.9.0",
     "parcel-plugin-static-files-copy": "2.2.1",
     "ts-node": "8.5.4",
     "typescript": "3.7.4"
