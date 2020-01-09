@@ -45,7 +45,7 @@
     "@octokit/graphql-schema": "6.60.0",
     "@types/node-fetch": "2.5.4",
     "apollo-link-http": "1.5.16",
-    "apollo-server-micro": "2.9.15",
+    "apollo-server-micro": "2.9.16",
     "axios": "0.19.0",
     "graphql": "14.5.8",
     "graphql-tools": "4.0.6",
