@@ -36,7 +36,7 @@
     "parcel-bundler": "1.12.4",
     "parcel-plugin-pwa-manifest": "2.8.2",
     "parcel-plugin-static-files-copy": "2.2.1",
-    "ts-node": "8.5.4",
+    "ts-node": "8.6.1",
     "typescript": "3.7.4"
   },
   "dependencies": {
