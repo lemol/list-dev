@@ -17,7 +17,7 @@ const getAuth0 = createAuth0Client({
 app.ports.requestLogin.subscribe(async () => {
   const auth0 = await getAuth0;
 
-  await auth0.loginWithPopup();
+  await auth0.loginWithRedirect();
   await setAuthState();
 });
 
