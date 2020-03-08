@@ -9,15 +9,21 @@ const app = Elm.Main.init({
   }
 });
 
+const redirectUri = `${window.location.protocol}//${window.location.host}`;
+
 const getAuth0 = createAuth0Client({
-  domain: "github-ao.eu.auth0.com",
-  client_id: "QtJ3O01q7fhSSmo3Mt3yk75XWmDkQdOi"
+  domain: process.env.AUTH0_DOMAIN,
+  client_id: process.env.AUTH0_CLIENT_ID,
+  redirect_uri: redirectUri
 });
 
 app.ports.requestLogin.subscribe(async () => {
   const auth0 = await getAuth0;
 
-  await auth0.loginWithRedirect();
+  await auth0.loginWithRedirect({
+    redirect_uri: redirectUri
+  });
+
   await setAuthState();
 });
 
